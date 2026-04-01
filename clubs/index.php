@@ -29,7 +29,7 @@ $clubs = Club::all();
             <?php if ($isLoggedIn): ?>
             <a href="create.php" class="header-action">+ New</a>
             <?php else: ?>
-            <span></span>
+            <a href="../login.php" class="header-action">Login</a>
             <?php endif; ?>
         </header>
 
@@ -52,10 +52,16 @@ $clubs = Club::all();
             </div>
             <div id="allClubs" class="club-grid">
                 <?php if (empty($clubs)): ?>
-                <div class="empty-state">
+                <div class="empty-state" style="grid-column: 1 / -1;">
                     <p>No clubs yet.</p>
                     <?php if ($isLoggedIn): ?>
                     <a href="create.php" class="btn-primary">Create the First Club</a>
+                    <?php else: ?>
+                    <p style="margin-top: 1rem; font-size: 0.875rem;">
+                        <a href="../login.php" style="color: var(--primary); font-weight: 600;">Login</a> or
+                        <a href="../register.php" style="color: var(--primary); font-weight: 600;">Register</a>
+                        to create a club
+                    </p>
                     <?php endif; ?>
                 </div>
                 <?php else: ?>

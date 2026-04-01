@@ -43,7 +43,7 @@ $playerName = Auth::name();
         <main class="main-content">
             <nav class="main-nav">
                 <a href="game.php" class="nav-card">
-                    <span class="nav-icon">🎳</span>
+                    <img src="assets/bowl-icon.svg" alt="" class="nav-icon-img">
                     <span class="nav-label">New Game</span>
                 </a>
                 <?php if ($isLoggedIn): ?>

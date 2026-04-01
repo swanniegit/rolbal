@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 48" width="56" height="48">
+  <!-- White jack (smaller, on the left) -->
+  <circle cx="10" cy="20" r="8" fill="#ffffff" stroke="#cccccc" stroke-width="1.5"/>
+  <circle cx="8" cy="18" r="2" fill="#f0f0f0" opacity="0.8"/>
+
+  <!-- Green bowl (larger, on the right) -->
+  <circle cx="38" cy="28" r="18" fill="#2d5016" stroke="#1e3a0f" stroke-width="2"/>
+  <circle cx="34" cy="24" r="3" fill="#4a7c2a" opacity="0.6"/>
+</svg>

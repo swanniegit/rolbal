@@ -58,7 +58,23 @@ body {
     right: 0;
 }
 
-.login-link,
+.login-link {
+    font-size: 0.875rem;
+    text-decoration: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    transition: background var(--transition), transform var(--transition);
+}
+
+.login-link:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
 .player-link {
     font-size: 0.875rem;
     text-decoration: none;
@@ -112,7 +128,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    background: var(--bg-card);
+    background: #c8e6c9;
     border-radius: var(--radius);
     padding: 1.5rem 1rem;
     text-decoration: none;
@@ -134,6 +150,11 @@ body {
 .nav-icon {
     font-size: 2.5rem;
     line-height: 1;
+}
+
+.nav-icon-img {
+    width: 2.5rem;
+    height: 2.5rem;
 }
 
 .nav-label {
@@ -170,6 +191,11 @@ body {
 
     .nav-icon {
         font-size: 3rem;
+    }
+
+    .nav-icon-img {
+        width: 3rem;
+        height: 3rem;
     }
 }
 
