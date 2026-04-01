@@ -1,6 +1,6 @@
 <?php
 /**
- * Match Viewer Page - Display live scoreboard with auto-refresh
+ * Match Viewer Page - Traditional Scoreboard Layout
  */
 
 require_once __DIR__ . '/../includes/Auth.php';
@@ -39,407 +39,423 @@ if (!$match) {
 
 $club = Club::find($match['club_id']);
 $canScore = GameMatch::canScore($playerId, $matchId);
+
+// Build running totals
+$t1Shots = [];
+$t2Shots = [];
+$t1Running = [];
+$t2Running = [];
+$t1Total = 0;
+$t2Total = 0;
+
+foreach ($match['ends'] as $end) {
+    $endNum = $end['end_number'];
+    if ($end['scoring_team'] == 1) {
+        $t1Shots[$endNum] = $end['shots'];
+        $t2Shots[$endNum] = '-';
+        $t1Total += $end['shots'];
+    } else {
+        $t1Shots[$endNum] = '-';
+        $t2Shots[$endNum] = $end['shots'];
+        $t2Total += $end['shots'];
+    }
+    $t1Running[$endNum] = $t1Total;
+    $t2Running[$endNum] = $t2Total;
+}
+
+$totalEnds = $match['target_score'] ?? $match['total_ends'] ?? 21;
+$scoringMode = $match['scoring_mode'] ?? 'ends';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
+    <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - <?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?> vs <?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></title>
+    <title>Rolbal - Scorecard</title>
     <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
     <style>
-        .scoreboard-large {
-            background: linear-gradient(135deg, var(--green-dark), #1a3d0c);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: #2d5016;
             color: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .live-indicator {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .live-indicator.live {
-            color: #ff4444;
-        }
-        .live-indicator.completed {
-            color: #90EE90;
-        }
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: #ff4444;
-            border-radius: 50%;
-            animation: blink 1s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        .match-type-label {
-            font-size: 0.8rem;
-            opacity: 0.8;
-            margin-bottom: 1rem;
-        }
-        .teams-display {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        .team-block {
-            flex: 1;
-            text-align: center;
-        }
-        .team-block.left { text-align: left; }
-        .team-block.right { text-align: right; }
-        .team-label {
-            font-size: 1rem;
-            opacity: 0.9;
-            margin-bottom: 0.5rem;
-        }
-        .score-big {
-            font-size: 4rem;
-            font-weight: bold;
-            line-height: 1;
-        }
-        .divider {
-            font-size: 2rem;
-            opacity: 0.5;
-            padding: 0 1rem;
-        }
-        .end-display {
-            text-align: center;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            font-size: 1rem;
-        }
-        .players-section {
-            background: var(--white);
-            border-radius: 12px;
             padding: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            gap: 1rem;
-        }
-        .players-col {
-            flex: 1;
-        }
-        .players-col h4 {
-            margin: 0 0 0.5rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .players-col.team-1 h4 { color: #3498db; }
-        .players-col.team-2 h4 { color: #e74c3c; }
-        .player-row {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
-            padding: 0.25rem 0;
-            border-bottom: 1px solid var(--border-color);
+            align-items: center;
         }
-        .player-row:last-child {
+        .header a { color: white; text-decoration: none; }
+        .header h1 { font-size: 1.1rem; }
+        .live-badge {
+            background: #ff4444;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+        .completed-badge {
+            background: #4CAF50;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .scoreboard {
+            background: white;
+            margin: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .team-section {
+            border-bottom: 2px solid #333;
+        }
+        .team-section:last-child {
             border-bottom: none;
         }
-        .player-position {
-            color: var(--text-secondary);
+        .team-header {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+        }
+        .team-name {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .team-1 .team-name { color: #1565c0; }
+        .team-2 .team-name { color: #c62828; }
+        .players {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .score-row {
+            display: flex;
+            border-bottom: 1px solid #eee;
+        }
+        .score-row:last-child {
+            border-bottom: none;
+        }
+        .row-label {
+            width: 50px;
+            padding: 0.5rem;
+            background: #f8f9fa;
             font-size: 0.7rem;
+            font-weight: 600;
+            color: #666;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
         }
-        .ends-section {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .ends-section h3 {
-            margin: 0 0 1rem;
-            font-size: 0.9rem;
-            color: var(--green-dark);
-        }
-        .ends-table {
-            width: 100%;
+        .score-cells {
+            display: flex;
+            flex: 1;
             overflow-x: auto;
         }
-        .ends-row {
-            display: flex;
-            gap: 0.25rem;
-            margin-bottom: 0.25rem;
-        }
-        .ends-row.header .end-num {
-            background: var(--green-light);
-            color: var(--green-dark);
-            font-weight: 600;
-        }
-        .end-num {
-            min-width: 2rem;
-            height: 2rem;
+        .score-cell {
+            min-width: 32px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-right: 1px solid #eee;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .score-cell:last-child {
+            border-right: none;
+        }
+        .ends-row {
+            background: #333;
+            color: white;
+        }
+        .ends-row .row-label {
+            background: #222;
+            color: white;
+        }
+        .ends-row .score-cell {
+            border-right-color: #444;
+            font-weight: 700;
             font-size: 0.75rem;
-            background: #f5f5f5;
-            border-radius: 4px;
         }
-        .ends-row.team-1 .end-num { background: rgba(52, 152, 219, 0.15); }
-        .ends-row.team-2 .end-num { background: rgba(231, 76, 60, 0.15); }
-        .ends-row.team-1 .end-num.scored {
-            background: #3498db;
-            color: white;
-            font-weight: 600;
+        .shots-row .score-cell {
+            color: #333;
         }
-        .ends-row.team-2 .end-num.scored {
-            background: #e74c3c;
-            color: white;
-            font-weight: 600;
+        .shots-row .score-cell.dash {
+            color: #ccc;
         }
-        .team-total {
-            font-weight: bold;
-            background: #333 !important;
-            color: white !important;
+        .total-row {
+            background: #fafafa;
+        }
+        .total-row .score-cell {
+            font-weight: 700;
+        }
+        .team-1 .total-row .score-cell { color: #1565c0; }
+        .team-2 .total-row .score-cell { color: #c62828; }
+        .final-score {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            gap: 1rem;
+        }
+        .final-team {
+            text-align: center;
+            flex: 1;
+        }
+        .final-team-name {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .final-team-score {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+        .team-1 .final-team-score { color: #1565c0; }
+        .team-2 .final-team-score { color: #c62828; }
+        .final-vs {
+            font-size: 1.5rem;
+            color: #ccc;
+        }
+        .match-info {
+            text-align: center;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            font-size: 0.8rem;
+            color: #666;
         }
         .refresh-note {
             text-align: center;
+            padding: 1rem;
             font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 1rem;
-        }
-        .refresh-note.updating {
-            color: var(--green-dark);
+            color: #999;
         }
         .action-bar {
-            margin-top: 1rem;
+            padding: 0 1rem 1rem;
         }
         .action-bar a {
             display: block;
             text-align: center;
             padding: 0.75rem;
-            background: var(--green-dark);
+            background: #2d5016;
             color: white;
             text-decoration: none;
             border-radius: 8px;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php?club=<?= $match['club_id'] ?>" class="back-btn">&larr;</a>
-            <h1 class="app-title">Live Score</h1>
-            <?php if ($canScore && $match['status'] === 'live'): ?>
-            <a href="score.php?id=<?= $matchId ?>" class="header-action">Score</a>
-            <?php else: ?>
-            <span></span>
-            <?php endif; ?>
-        </header>
-
-        <main class="main-content">
-            <?php if ($flash): ?>
-            <div class="flash flash-<?= $flash['type'] ?>"><?= htmlspecialchars($flash['message']) ?></div>
-            <?php endif; ?>
-
-            <!-- Scoreboard -->
-            <div class="scoreboard-large">
-                <div class="live-indicator <?= $match['status'] ?>" id="liveIndicator">
-                    <?php if ($match['status'] === 'live'): ?>
-                    <span class="live-dot"></span>
-                    <span>LIVE</span>
-                    <?php elseif ($match['status'] === 'completed'): ?>
-                    <span>FINAL</span>
-                    <?php else: ?>
-                    <span>SETUP</span>
-                    <?php endif; ?>
-                </div>
-
-                <div class="match-type-label"><?= ucfirst($match['game_type']) ?> · <?= htmlspecialchars($club['name']) ?></div>
-
-                <div class="teams-display">
-                    <div class="team-block left">
-                        <div class="team-label" id="team1Name"><?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?></div>
-                        <div class="score-big" id="team1Score"><?= $match['team1_score'] ?></div>
-                    </div>
-                    <div class="divider">-</div>
-                    <div class="team-block right">
-                        <div class="team-label" id="team2Name"><?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></div>
-                        <div class="score-big" id="team2Score"><?= $match['team2_score'] ?></div>
-                    </div>
-                </div>
-
-                <div class="end-display">
-                    <?php if ($match['status'] === 'completed'): ?>
-                    Match Complete
-                    <?php else: ?>
-                    End <span id="currentEnd"><?= $match['current_end'] ?></span> of <?= $match['total_ends'] ?>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <!-- Players -->
-            <div class="players-section">
-                <div class="players-col team-1">
-                    <h4><?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?></h4>
-                    <?php foreach ($match['teams'][0]['players'] ?? [] as $player): ?>
-                    <div class="player-row">
-                        <span><?= htmlspecialchars($player['player_name']) ?></span>
-                        <span class="player-position"><?= ucfirst($player['position']) ?></span>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                <div class="players-col team-2">
-                    <h4><?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></h4>
-                    <?php foreach ($match['teams'][1]['players'] ?? [] as $player): ?>
-                    <div class="player-row">
-                        <span><?= htmlspecialchars($player['player_name']) ?></span>
-                        <span class="player-position"><?= ucfirst($player['position']) ?></span>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <!-- Ends Breakdown -->
-            <div class="ends-section">
-                <h3>Ends Breakdown</h3>
-                <div class="ends-table" id="endsTable">
-                    <!-- Header row -->
-                    <div class="ends-row header">
-                        <div class="end-num">End</div>
-                        <?php for ($i = 1; $i <= min(count($match['ends']), $match['total_ends']); $i++): ?>
-                        <div class="end-num"><?= $i ?></div>
-                        <?php endfor; ?>
-                        <div class="end-num team-total">Tot</div>
-                    </div>
-                    <!-- Team 1 row -->
-                    <div class="ends-row team-1">
-                        <div class="end-num"><?= htmlspecialchars(substr($match['teams'][0]['team_name'] ?? 'T1', 0, 3)) ?></div>
-                        <?php
-                        $t1Total = 0;
-                        foreach ($match['ends'] as $end):
-                            $isT1 = $end['scoring_team'] == 1;
-                            $shots = $isT1 ? $end['shots'] : '-';
-                            if ($isT1) $t1Total += $end['shots'];
-                        ?>
-                        <div class="end-num <?= $isT1 ? 'scored' : '' ?>"><?= $shots ?></div>
-                        <?php endforeach; ?>
-                        <div class="end-num team-total"><?= $t1Total ?></div>
-                    </div>
-                    <!-- Team 2 row -->
-                    <div class="ends-row team-2">
-                        <div class="end-num"><?= htmlspecialchars(substr($match['teams'][1]['team_name'] ?? 'T2', 0, 3)) ?></div>
-                        <?php
-                        $t2Total = 0;
-                        foreach ($match['ends'] as $end):
-                            $isT2 = $end['scoring_team'] == 2;
-                            $shots = $isT2 ? $end['shots'] : '-';
-                            if ($isT2) $t2Total += $end['shots'];
-                        ?>
-                        <div class="end-num <?= $isT2 ? 'scored' : '' ?>"><?= $shots ?></div>
-                        <?php endforeach; ?>
-                        <div class="end-num team-total"><?= $t2Total ?></div>
-                    </div>
-                </div>
-            </div>
-
-            <?php if ($match['status'] === 'live'): ?>
-            <div class="refresh-note" id="refreshNote">Auto-refreshing every 5 seconds</div>
-            <?php endif; ?>
-
-            <?php if ($canScore && $match['status'] === 'live'): ?>
-            <div class="action-bar">
-                <a href="score.php?id=<?= $matchId ?>">Open Scorer</a>
-            </div>
-            <?php endif; ?>
-        </main>
+    <div class="header">
+        <a href="index.php?club=<?= $match['club_id'] ?>">&larr; Back</a>
+        <h1>Scorecard</h1>
+        <?php if ($match['status'] === 'live'): ?>
+        <span class="live-badge">LIVE</span>
+        <?php elseif ($match['status'] === 'completed'): ?>
+        <span class="completed-badge">FINAL</span>
+        <?php else: ?>
+        <span></span>
+        <?php endif; ?>
     </div>
+
+    <!-- Final Score Summary -->
+    <div class="scoreboard">
+        <div class="final-score">
+            <div class="final-team team-1">
+                <div class="final-team-name"><?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?></div>
+                <div class="final-team-score" id="finalScore1"><?= $match['team1_score'] ?></div>
+            </div>
+            <div class="final-vs">-</div>
+            <div class="final-team team-2">
+                <div class="final-team-name"><?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></div>
+                <div class="final-team-score" id="finalScore2"><?= $match['team2_score'] ?></div>
+            </div>
+        </div>
+        <div class="match-info">
+            <?= ucfirst($match['game_type']) ?> ·
+            <?php if ($scoringMode === 'first_to'): ?>
+                First to <?= $totalEnds ?>
+            <?php else: ?>
+                End <?= $match['current_end'] ?> of <?= $totalEnds ?>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Traditional Scoreboard -->
+    <div class="scoreboard" id="scoreboard">
+        <!-- Team 1 -->
+        <div class="team-section team-1">
+            <div class="team-header">
+                <span class="team-name"><?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?></span>
+                <span class="players">
+                    <?php
+                    $players1 = array_map(fn($p) => $p['player_name'], $match['teams'][0]['players'] ?? []);
+                    echo htmlspecialchars(implode(', ', $players1));
+                    ?>
+                </span>
+            </div>
+            <div class="score-row shots-row" id="t1Shots">
+                <div class="row-label">Shots</div>
+                <div class="score-cells">
+                    <?php for ($i = 1; $i <= max(count($match['ends']), 1); $i++): ?>
+                    <div class="score-cell <?= ($t1Shots[$i] ?? '-') === '-' ? 'dash' : '' ?>">
+                        <?= $t1Shots[$i] ?? '-' ?>
+                    </div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+            <div class="score-row total-row" id="t1Total">
+                <div class="row-label">Total</div>
+                <div class="score-cells">
+                    <?php for ($i = 1; $i <= max(count($match['ends']), 1); $i++): ?>
+                    <div class="score-cell"><?= $t1Running[$i] ?? '-' ?></div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ends Row -->
+        <div class="score-row ends-row" id="endsRow">
+            <div class="row-label">Ends</div>
+            <div class="score-cells">
+                <?php for ($i = 1; $i <= max(count($match['ends']), 1); $i++): ?>
+                <div class="score-cell"><?= $i ?></div>
+                <?php endfor; ?>
+            </div>
+        </div>
+
+        <!-- Team 2 -->
+        <div class="team-section team-2">
+            <div class="score-row shots-row" id="t2Shots">
+                <div class="row-label">Shots</div>
+                <div class="score-cells">
+                    <?php for ($i = 1; $i <= max(count($match['ends']), 1); $i++): ?>
+                    <div class="score-cell <?= ($t2Shots[$i] ?? '-') === '-' ? 'dash' : '' ?>">
+                        <?= $t2Shots[$i] ?? '-' ?>
+                    </div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+            <div class="score-row total-row" id="t2Total">
+                <div class="row-label">Total</div>
+                <div class="score-cells">
+                    <?php for ($i = 1; $i <= max(count($match['ends']), 1); $i++): ?>
+                    <div class="score-cell"><?= $t2Running[$i] ?? '-' ?></div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+            <div class="team-header">
+                <span class="team-name"><?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></span>
+                <span class="players">
+                    <?php
+                    $players2 = array_map(fn($p) => $p['player_name'], $match['teams'][1]['players'] ?? []);
+                    echo htmlspecialchars(implode(', ', $players2));
+                    ?>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <?php if ($match['status'] === 'live'): ?>
+    <div class="refresh-note">Auto-refreshing every 5 seconds</div>
+    <?php endif; ?>
+
+    <?php if ($canScore && $match['status'] === 'live'): ?>
+    <div class="action-bar">
+        <a href="score.php?id=<?= $matchId ?>">Open Scorer</a>
+    </div>
+    <?php endif; ?>
 
     <?php if ($match['status'] === 'live'): ?>
     <script>
     const MATCH_ID = <?= $matchId ?>;
-    const TOTAL_ENDS = <?= $match['total_ends'] ?>;
-    const TEAM1_ABBR = '<?= addslashes(substr($match['teams'][0]['team_name'] ?? 'T1', 0, 3)) ?>';
-    const TEAM2_ABBR = '<?= addslashes(substr($match['teams'][1]['team_name'] ?? 'T2', 0, 3)) ?>';
 
     async function refreshScores() {
-        const note = document.getElementById('refreshNote');
-        note.textContent = 'Updating...';
-        note.classList.add('updating');
-
         try {
             const res = await fetch('../api/match.php?action=scores&id=' + MATCH_ID);
             const data = await res.json();
-
-            if (data.success) {
-                updateDisplay(data);
+            if (data.success !== false) {
+                updateScoreboard(data);
             }
         } catch (err) {
             console.error('Refresh error:', err);
         }
-
-        note.textContent = 'Auto-refreshing every 5 seconds';
-        note.classList.remove('updating');
     }
 
-    function updateDisplay(data) {
-        // Update scores
-        document.getElementById('team1Score').textContent = data.team1_score;
-        document.getElementById('team2Score').textContent = data.team2_score;
-        document.getElementById('currentEnd').textContent = data.current_end;
-
-        // Check if match completed
+    function updateScoreboard(data) {
         if (data.status === 'completed') {
             location.reload();
             return;
         }
 
-        // Update ends table
-        updateEndsTable(data.ends, data.team1_score, data.team2_score);
-    }
+        // Build running totals
+        let t1Total = 0, t2Total = 0;
+        let t1Shots = {}, t2Shots = {}, t1Running = {}, t2Running = {};
 
-    function updateEndsTable(ends, t1Total, t2Total) {
-        const table = document.getElementById('endsTable');
+        data.ends.forEach(end => {
+            const num = end.end_number;
+            if (end.scoring_team == 1) {
+                t1Shots[num] = end.shots;
+                t2Shots[num] = '-';
+                t1Total += end.shots;
+            } else {
+                t1Shots[num] = '-';
+                t2Shots[num] = end.shots;
+                t2Total += end.shots;
+            }
+            t1Running[num] = t1Total;
+            t2Running[num] = t2Total;
+        });
 
-        // Build header
-        let headerHtml = '<div class="end-num">End</div>';
-        for (let i = 1; i <= ends.length; i++) {
-            headerHtml += '<div class="end-num">' + i + '</div>';
+        // Update final scores
+        document.getElementById('finalScore1').textContent = t1Total;
+        document.getElementById('finalScore2').textContent = t2Total;
+
+        // Update rows
+        const numEnds = data.ends.length || 1;
+
+        let t1ShotsHtml = '<div class="row-label">Shots</div><div class="score-cells">';
+        let t1TotalHtml = '<div class="row-label">Total</div><div class="score-cells">';
+        let endsHtml = '<div class="row-label">Ends</div><div class="score-cells">';
+        let t2ShotsHtml = '<div class="row-label">Shots</div><div class="score-cells">';
+        let t2TotalHtml = '<div class="row-label">Total</div><div class="score-cells">';
+
+        for (let i = 1; i <= numEnds; i++) {
+            const t1s = t1Shots[i] || '-';
+            const t2s = t2Shots[i] || '-';
+            t1ShotsHtml += `<div class="score-cell ${t1s === '-' ? 'dash' : ''}">${t1s}</div>`;
+            t1TotalHtml += `<div class="score-cell">${t1Running[i] || '-'}</div>`;
+            endsHtml += `<div class="score-cell">${i}</div>`;
+            t2ShotsHtml += `<div class="score-cell ${t2s === '-' ? 'dash' : ''}">${t2s}</div>`;
+            t2TotalHtml += `<div class="score-cell">${t2Running[i] || '-'}</div>`;
         }
-        headerHtml += '<div class="end-num team-total">Tot</div>';
 
-        // Build team 1 row
-        let t1Html = '<div class="end-num">' + TEAM1_ABBR + '</div>';
-        ends.forEach(end => {
-            const isT1 = end.scoring_team == 1;
-            t1Html += '<div class="end-num ' + (isT1 ? 'scored' : '') + '">' + (isT1 ? end.shots : '-') + '</div>';
-        });
-        t1Html += '<div class="end-num team-total">' + t1Total + '</div>';
+        t1ShotsHtml += '</div>';
+        t1TotalHtml += '</div>';
+        endsHtml += '</div>';
+        t2ShotsHtml += '</div>';
+        t2TotalHtml += '</div>';
 
-        // Build team 2 row
-        let t2Html = '<div class="end-num">' + TEAM2_ABBR + '</div>';
-        ends.forEach(end => {
-            const isT2 = end.scoring_team == 2;
-            t2Html += '<div class="end-num ' + (isT2 ? 'scored' : '') + '">' + (isT2 ? end.shots : '-') + '</div>';
-        });
-        t2Html += '<div class="end-num team-total">' + t2Total + '</div>';
-
-        table.innerHTML = `
-            <div class="ends-row header">${headerHtml}</div>
-            <div class="ends-row team-1">${t1Html}</div>
-            <div class="ends-row team-2">${t2Html}</div>
-        `;
+        document.getElementById('t1Shots').innerHTML = t1ShotsHtml;
+        document.getElementById('t1Total').innerHTML = t1TotalHtml;
+        document.getElementById('endsRow').innerHTML = endsHtml;
+        document.getElementById('t2Shots').innerHTML = t2ShotsHtml;
+        document.getElementById('t2Total').innerHTML = t2TotalHtml;
     }
 
-    // Poll every 5 seconds
     setInterval(refreshScores, 5000);
     </script>
     <?php endif; ?>
