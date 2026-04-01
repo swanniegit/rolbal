@@ -23,6 +23,20 @@ if (!$matchId) {
     exit;
 }
 
+// Handle claim request
+if (isset($_GET['claim'])) {
+    if (GameMatch::canClaimScorer($playerId, $matchId)) {
+        GameMatch::claimScorer($matchId, $playerId);
+        Auth::flash('success', 'You are now the scorer for this match');
+        header('Location: score.php?id=' . $matchId);
+        exit;
+    } else {
+        Auth::flash('error', 'Cannot claim scorer - must be paid member and scorer not already claimed');
+        header('Location: index.php?club=' . GameMatch::find($matchId)['club_id']);
+        exit;
+    }
+}
+
 // Verify permissions
 if (!GameMatch::canScore($playerId, $matchId)) {
     Auth::flash('error', 'Not authorized to score this match');

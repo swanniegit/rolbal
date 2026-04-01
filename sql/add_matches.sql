@@ -1,20 +1,26 @@
 -- Live Match Scoring System
 -- Run this migration after add_challenges.sql
 
+-- Add is_paid column to players if not exists
+ALTER TABLE players ADD COLUMN is_paid TINYINT(1) DEFAULT 0 AFTER email_verified;
+
 -- Live matches
 CREATE TABLE IF NOT EXISTS matches (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     club_id INT UNSIGNED NOT NULL,
     game_type ENUM('singles', 'pairs', 'trips', 'fours') NOT NULL,
     bowls_per_player TINYINT UNSIGNED NOT NULL DEFAULT 4,
-    total_ends TINYINT UNSIGNED NOT NULL DEFAULT 21,
+    scoring_mode ENUM('ends', 'first_to') DEFAULT 'ends' COMMENT 'ends=play X ends, first_to=first to X points',
+    target_score TINYINT UNSIGNED NOT NULL DEFAULT 21 COMMENT 'Number of ends OR points target',
     status ENUM('setup', 'live', 'completed') DEFAULT 'setup',
     created_by INT UNSIGNED NOT NULL,
+    scorer_id INT UNSIGNED NULL COMMENT 'Player who claimed scorer role',
     started_at TIMESTAMP NULL,
     completed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (club_id) REFERENCES clubs(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES players(id),
+    FOREIGN KEY (scorer_id) REFERENCES players(id) ON DELETE SET NULL,
     INDEX idx_club_status (club_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

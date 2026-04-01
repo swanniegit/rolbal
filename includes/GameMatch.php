@@ -99,7 +99,7 @@ class GameMatch {
         $db = Database::getInstance();
 
         // Get match status
-        $stmt = $db->prepare('SELECT status, total_ends FROM matches WHERE id = :id');
+        $stmt = $db->prepare('SELECT status, scoring_mode, target_score FROM matches WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $match = $stmt->fetch();
         if (!$match) {
@@ -124,7 +124,8 @@ class GameMatch {
 
         return [
             'status' => $match['status'],
-            'total_ends' => $match['total_ends'],
+            'scoring_mode' => $match['scoring_mode'],
+            'target_score' => $match['target_score'],
             'current_end' => count($ends) + 1,
             'ends' => $ends,
             'team1_score' => $team1_score,
@@ -132,14 +133,44 @@ class GameMatch {
         ];
     }
 
+    public static function getLiveMatchesForClub(int $clubId): array {
+        $db = Database::getInstance();
+
+        $stmt = $db->prepare('
+            SELECT m.id, m.game_type, m.total_ends, m.status, m.scorer_id,
+                   t1.team_name as team1_name, t2.team_name as team2_name,
+                   p.name as scorer_name
+            FROM matches m
+            LEFT JOIN match_teams t1 ON t1.match_id = m.id AND t1.team_number = 1
+            LEFT JOIN match_teams t2 ON t2.match_id = m.id AND t2.team_number = 2
+            LEFT JOIN players p ON p.id = m.scorer_id
+            WHERE m.club_id = :club_id AND m.status = "live"
+            ORDER BY m.started_at DESC
+        ');
+        $stmt->execute(['club_id' => $clubId]);
+        $matches = $stmt->fetchAll();
+
+        // Add scores to each match
+        foreach ($matches as &$match) {
+            $scores = self::getScores($match['id']);
+            $match['team1_score'] = $scores['team1_score'];
+            $match['team2_score'] = $scores['team2_score'];
+            $match['current_end'] = $scores['current_end'];
+            $match['ends'] = $scores['ends'];
+        }
+
+        return $matches;
+    }
+
     public static function listByClub(int $clubId, ?string $status = null, int $limit = 20): array {
         $db = Database::getInstance();
 
         $sql = '
-            SELECT m.*, p.name as created_by_name,
+            SELECT m.*, p.name as created_by_name, s.name as scorer_name,
                    t1.team_name as team1_name, t2.team_name as team2_name
             FROM matches m
             JOIN players p ON p.id = m.created_by
+            LEFT JOIN players s ON s.id = m.scorer_id
             LEFT JOIN match_teams t1 ON t1.match_id = m.id AND t1.team_number = 1
             LEFT JOIN match_teams t2 ON t2.match_id = m.id AND t2.team_number = 2
             WHERE m.club_id = :club_id
@@ -174,19 +205,20 @@ class GameMatch {
         return $matches;
     }
 
-    public static function create(int $clubId, int $createdBy, string $gameType, int $bowlsPerPlayer, int $totalEnds): int {
+    public static function create(int $clubId, int $createdBy, string $gameType, int $bowlsPerPlayer, string $scoringMode, int $targetScore): int {
         $db = Database::getInstance();
 
         $stmt = $db->prepare('
-            INSERT INTO matches (club_id, created_by, game_type, bowls_per_player, total_ends, status)
-            VALUES (:club_id, :created_by, :game_type, :bowls_per_player, :total_ends, "setup")
+            INSERT INTO matches (club_id, created_by, game_type, bowls_per_player, scoring_mode, target_score, status)
+            VALUES (:club_id, :created_by, :game_type, :bowls_per_player, :scoring_mode, :target_score, "setup")
         ');
         $stmt->execute([
             'club_id' => $clubId,
             'created_by' => $createdBy,
             'game_type' => $gameType,
             'bowls_per_player' => $bowlsPerPlayer,
-            'total_ends' => $totalEnds
+            'scoring_mode' => $scoringMode,
+            'target_score' => $targetScore
         ]);
 
         return (int)$db->lastInsertId();
@@ -323,19 +355,93 @@ class GameMatch {
         return in_array($member['role'], ['owner', 'admin']);
     }
 
+    public static function isPaidMember(int $playerId): bool {
+        $db = Database::getInstance();
+        $stmt = $db->prepare('SELECT is_paid FROM players WHERE id = :id');
+        $stmt->execute(['id' => $playerId]);
+        $player = $stmt->fetch();
+        return $player && $player['is_paid'];
+    }
+
+    public static function claimScorer(int $matchId, int $playerId): bool {
+        // Check if player is paid
+        if (!self::isPaidMember($playerId)) {
+            return false;
+        }
+
+        $db = Database::getInstance();
+
+        // Only claim if not already claimed
+        $stmt = $db->prepare('
+            UPDATE matches
+            SET scorer_id = :player_id
+            WHERE id = :match_id AND scorer_id IS NULL
+        ');
+        $stmt->execute([
+            'match_id' => $matchId,
+            'player_id' => $playerId
+        ]);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    public static function releaseScorer(int $matchId, int $playerId): bool {
+        $db = Database::getInstance();
+
+        // Only release if this player is the scorer or creator
+        $match = self::find($matchId);
+        if (!$match) {
+            return false;
+        }
+
+        if ($match['scorer_id'] != $playerId && $match['created_by'] != $playerId) {
+            return false;
+        }
+
+        $stmt = $db->prepare('UPDATE matches SET scorer_id = NULL WHERE id = :id');
+        $stmt->execute(['id' => $matchId]);
+
+        return $stmt->rowCount() > 0;
+    }
+
     public static function canScore(int $playerId, int $matchId): bool {
         $match = self::find($matchId);
         if (!$match) {
             return false;
         }
 
-        // Match creator can always score
+        // If scorer is claimed, only that person can score
+        if ($match['scorer_id']) {
+            return $match['scorer_id'] == $playerId;
+        }
+
+        // Match creator can always score (before claimed)
         if ($match['created_by'] == $playerId) {
             return true;
         }
 
-        // Club admins can score
+        // Club admins can score (before claimed)
         return self::canCreate($playerId, $match['club_id']);
+    }
+
+    public static function canClaimScorer(int $playerId, int $matchId): bool {
+        $match = self::find($matchId);
+        if (!$match) {
+            return false;
+        }
+
+        // Already claimed
+        if ($match['scorer_id']) {
+            return false;
+        }
+
+        // Must be paid member
+        if (!self::isPaidMember($playerId)) {
+            return false;
+        }
+
+        // Must be club member
+        return self::canView($playerId, $matchId);
     }
 
     public static function canView(int $playerId, int $matchId): bool {

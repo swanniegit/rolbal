@@ -90,6 +90,29 @@ try {
             // Get game type configurations
             ApiResponse::success(['game_types' => GameMatch::getGameTypes()]);
 
+        } elseif ($action === 'live_all') {
+            // Get all live matches for a club (for multi-viewer)
+            $clubId = isset($_GET['club_id']) ? (int)$_GET['club_id'] : 0;
+            if (!$clubId) {
+                throw new Exception('Club ID required');
+            }
+
+            $playerId = Auth::id();
+            if (!$playerId) {
+                ApiResponse::unauthorized();
+            }
+
+            // Verify club membership
+            $db = Database::getInstance();
+            $stmt = $db->prepare('SELECT 1 FROM club_members WHERE club_id = :club_id AND player_id = :player_id');
+            $stmt->execute(['club_id' => $clubId, 'player_id' => $playerId]);
+            if (!$stmt->fetch()) {
+                ApiResponse::forbidden('Not a club member');
+            }
+
+            $matches = GameMatch::getLiveMatchesForClub($clubId);
+            ApiResponse::success(['matches' => $matches]);
+
         } else {
             ApiResponse::error('Invalid action');
         }
@@ -107,7 +130,8 @@ try {
             $clubId = isset($_POST['club_id']) ? (int)$_POST['club_id'] : 0;
             $gameType = $_POST['game_type'] ?? '';
             $bowlsPerPlayer = isset($_POST['bowls_per_player']) ? (int)$_POST['bowls_per_player'] : 0;
-            $totalEnds = isset($_POST['total_ends']) ? (int)$_POST['total_ends'] : 21;
+            $scoringMode = $_POST['scoring_mode'] ?? 'ends';
+            $targetScore = isset($_POST['target_score']) ? (int)$_POST['target_score'] : 21;
 
             if (!$clubId) {
                 throw new Exception('Club ID required');
@@ -127,11 +151,15 @@ try {
                 $bowlsPerPlayer = $config['default_bowls'];
             }
 
-            if ($totalEnds < 1 || $totalEnds > 50) {
-                $totalEnds = 21;
+            if (!in_array($scoringMode, ['ends', 'first_to'])) {
+                $scoringMode = 'ends';
             }
 
-            $matchId = GameMatch::create($clubId, $playerId, $gameType, $bowlsPerPlayer, $totalEnds);
+            if ($targetScore < 1 || $targetScore > 50) {
+                $targetScore = 21;
+            }
+
+            $matchId = GameMatch::create($clubId, $playerId, $gameType, $bowlsPerPlayer, $scoringMode, $targetScore);
 
             // Create teams
             $team1Name = trim($_POST['team1_name'] ?? 'Team 1');
@@ -250,6 +278,38 @@ try {
 
             $scores = GameMatch::getScores($matchId);
             ApiResponse::success($scores);
+
+        } elseif ($action === 'claim_scorer') {
+            // Claim scorer role (paid members only)
+            $matchId = isset($_POST['match_id']) ? (int)$_POST['match_id'] : 0;
+            if (!$matchId) {
+                throw new Exception('Match ID required');
+            }
+
+            if (!GameMatch::canClaimScorer($playerId, $matchId)) {
+                ApiResponse::forbidden('Cannot claim scorer - must be paid member and scorer not already claimed');
+            }
+
+            $result = GameMatch::claimScorer($matchId, $playerId);
+            if (!$result) {
+                throw new Exception('Failed to claim scorer role');
+            }
+
+            ApiResponse::success();
+
+        } elseif ($action === 'release_scorer') {
+            // Release scorer role
+            $matchId = isset($_POST['match_id']) ? (int)$_POST['match_id'] : 0;
+            if (!$matchId) {
+                throw new Exception('Match ID required');
+            }
+
+            $result = GameMatch::releaseScorer($matchId, $playerId);
+            if (!$result) {
+                throw new Exception('Cannot release scorer - not authorized');
+            }
+
+            ApiResponse::success();
 
         } else {
             ApiResponse::error('Invalid action');

@@ -53,61 +53,107 @@ $members = Club::getMembers($clubId);
     <link rel="stylesheet" href="../css/styles.css">
     <style>
         .form-section {
-            background: var(--white);
-            border-radius: 8px;
-            padding: 1rem;
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.25rem;
             margin-bottom: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .form-section h3 {
             margin: 0 0 1rem;
             font-size: 1rem;
-            color: var(--green-dark);
+            color: #2d5016;
+            font-weight: 600;
+        }
+        .game-type-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .game-type-btn {
+            padding: 1rem 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fff;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .game-type-btn:hover {
+            border-color: #81c784;
+            background: #f5fff5;
+        }
+        .game-type-btn.active {
+            border-color: #2d5016;
+            background: #e8f5e9;
+        }
+        .game-type-btn .name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #333;
+            display: block;
+        }
+        .game-type-btn .desc {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.25rem;
         }
         .form-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 0.75rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0;
         }
         .form-group {
-            flex: 1;
+            margin-bottom: 0.75rem;
         }
         .form-group label {
             display: block;
             font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 0.6rem;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.9rem;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2d5016;
         }
         .team-section {
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.25rem;
             margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-        .team-section.team-1 { border-color: #3498db; }
-        .team-section.team-2 { border-color: #e74c3c; }
-        .team-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
+        .team-section.team-1 {
+            border-left: 4px solid #3498db;
         }
-        .team-header h4 {
-            margin: 0;
-            font-size: 0.9rem;
+        .team-section.team-2 {
+            border-left: 4px solid #e74c3c;
         }
-        .team-1 .team-header h4 { color: #3498db; }
-        .team-2 .team-header h4 { color: #e74c3c; }
+        .team-section h4 {
+            margin: 0 0 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .team-1 h4 { color: #3498db; }
+        .team-2 h4 { color: #e74c3c; }
         .position-row {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
         .position-row:last-child {
             margin-bottom: 0;
@@ -115,47 +161,42 @@ $members = Club::getMembers($clubId);
         .position-label {
             font-size: 0.7rem;
             text-transform: uppercase;
-            color: var(--text-secondary);
+            color: #888;
             margin-bottom: 0.25rem;
-        }
-        .hidden { display: none; }
-        .game-type-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-        .game-type-btn {
-            padding: 0.75rem;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--white);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .game-type-btn:hover {
-            border-color: var(--green-medium);
-        }
-        .game-type-btn.active {
-            border-color: var(--green-dark);
-            background: var(--green-light);
-        }
-        .game-type-btn .name {
             font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-primary);
+            letter-spacing: 0.5px;
         }
-        .game-type-btn .desc {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
+        .position-row input {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
         }
+        .position-row input:focus {
+            outline: none;
+            border-color: #2d5016;
+        }
+        .hidden { display: none !important; }
         .btn-start {
             width: 100%;
             padding: 1rem;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
             margin-top: 0.5rem;
+            border-radius: 10px;
+            background: #2d5016;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-start:hover {
+            background: #1e3a0f;
+        }
+        .btn-start:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -176,26 +217,27 @@ $members = Club::getMembers($clubId);
                 <input type="hidden" name="action" value="create">
                 <input type="hidden" name="club_id" value="<?= $clubId ?>">
                 <input type="hidden" name="game_type" id="gameTypeInput" value="singles">
+                <input type="hidden" name="scoring_mode" id="scoringModeInput" value="first_to">
 
                 <!-- Game Type Selection -->
                 <div class="form-section">
                     <h3>Game Type</h3>
                     <div class="game-type-grid">
-                        <div class="game-type-btn active" data-type="singles">
-                            <div class="name">Singles</div>
-                            <div class="desc">1v1 · 4 bowls</div>
+                        <div class="game-type-btn active" data-type="singles" data-mode="first_to">
+                            <span class="name">Singles</span>
+                            <span class="desc">1v1 · 4 bowls</span>
                         </div>
-                        <div class="game-type-btn" data-type="pairs">
-                            <div class="name">Pairs</div>
-                            <div class="desc">2v2 · 3-4 bowls</div>
+                        <div class="game-type-btn" data-type="pairs" data-mode="ends">
+                            <span class="name">Pairs</span>
+                            <span class="desc">2v2 · 3-4 bowls</span>
                         </div>
-                        <div class="game-type-btn" data-type="trips">
-                            <div class="name">Trips</div>
-                            <div class="desc">3v3 · 2-3 bowls</div>
+                        <div class="game-type-btn" data-type="trips" data-mode="ends">
+                            <span class="name">Trips</span>
+                            <span class="desc">3v3 · 2-3 bowls</span>
                         </div>
-                        <div class="game-type-btn" data-type="fours">
-                            <div class="name">Fours</div>
-                            <div class="desc">4v4 · 2 bowls</div>
+                        <div class="game-type-btn" data-type="fours" data-mode="ends">
+                            <span class="name">Fours</span>
+                            <span class="desc">4v4 · 2 bowls</span>
                         </div>
                     </div>
 
@@ -207,12 +249,11 @@ $members = Club::getMembers($clubId);
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Number of Ends</label>
-                            <select name="total_ends">
-                                <option value="15">15 ends</option>
-                                <option value="18">18 ends</option>
-                                <option value="21" selected>21 ends</option>
-                                <option value="25">25 ends</option>
+                            <label id="targetLabel">First to</label>
+                            <select name="target_score" id="targetSelect">
+                                <option value="21" selected>21 points</option>
+                                <option value="25">25 points</option>
+                                <option value="31">31 points</option>
                             </select>
                         </div>
                     </div>
@@ -220,10 +261,8 @@ $members = Club::getMembers($clubId);
 
                 <!-- Team 1 -->
                 <div class="team-section team-1">
-                    <div class="team-header">
-                        <h4>Team 1</h4>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                    <h4>Team 1</h4>
+                    <div class="form-group">
                         <label>Team Name</label>
                         <input type="text" name="team1_name" placeholder="Team 1">
                     </div>
@@ -247,10 +286,8 @@ $members = Club::getMembers($clubId);
 
                 <!-- Team 2 -->
                 <div class="team-section team-2">
-                    <div class="team-header">
-                        <h4>Team 2</h4>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                    <h4>Team 2</h4>
+                    <div class="form-group">
                         <label>Team Name</label>
                         <input type="text" name="team2_name" placeholder="Team 2">
                     </div>
@@ -279,7 +316,7 @@ $members = Club::getMembers($clubId);
                     <?php endforeach; ?>
                 </datalist>
 
-                <button type="submit" class="btn-primary btn-start" id="startBtn">Create Match</button>
+                <button type="submit" class="btn-start" id="startBtn">Create Match</button>
             </form>
         </main>
     </div>
@@ -290,15 +327,19 @@ $members = Club::getMembers($clubId);
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('matchForm');
         const gameTypeInput = document.getElementById('gameTypeInput');
+        const scoringModeInput = document.getElementById('scoringModeInput');
         const bowlsSelect = document.getElementById('bowlsSelect');
+        const targetSelect = document.getElementById('targetSelect');
+        const targetLabel = document.getElementById('targetLabel');
         const gameTypeBtns = document.querySelectorAll('.game-type-btn');
 
-        function updateFormForGameType(type) {
+        function updateFormForGameType(type, mode) {
             const config = GAME_TYPES[type];
             if (!config) return;
 
-            // Update game type input
+            // Update hidden inputs
             gameTypeInput.value = type;
+            scoringModeInput.value = mode;
 
             // Update active button
             gameTypeBtns.forEach(btn => {
@@ -315,6 +356,24 @@ $members = Club::getMembers($clubId);
                 bowlsSelect.appendChild(opt);
             });
 
+            // Update target label and options based on scoring mode
+            if (mode === 'first_to') {
+                targetLabel.textContent = 'First to';
+                targetSelect.innerHTML = `
+                    <option value="21">21 points</option>
+                    <option value="25">25 points</option>
+                    <option value="31">31 points</option>
+                `;
+            } else {
+                targetLabel.textContent = 'Number of Ends';
+                targetSelect.innerHTML = `
+                    <option value="15">15 ends</option>
+                    <option value="18">18 ends</option>
+                    <option value="21" selected>21 ends</option>
+                    <option value="25">25 ends</option>
+                `;
+            }
+
             // Show/hide position rows
             const allPositions = ['skip', 'third', 'second', 'lead'];
             document.querySelectorAll('.position-row').forEach(row => {
@@ -327,7 +386,7 @@ $members = Club::getMembers($clubId);
         // Game type button click
         gameTypeBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                updateFormForGameType(btn.dataset.type);
+                updateFormForGameType(btn.dataset.type, btn.dataset.mode);
             });
         });
 
@@ -363,7 +422,7 @@ $members = Club::getMembers($clubId);
         });
 
         // Initialize
-        updateFormForGameType('singles');
+        updateFormForGameType('singles', 'first_to');
     });
     </script>
 </body>
