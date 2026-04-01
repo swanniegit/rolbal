@@ -357,10 +357,15 @@ class GameMatch {
 
     public static function isPaidMember(int $playerId): bool {
         $db = Database::getInstance();
-        $stmt = $db->prepare('SELECT is_paid FROM players WHERE id = :id');
-        $stmt->execute(['id' => $playerId]);
-        $player = $stmt->fetch();
-        return $player && $player['is_paid'];
+        try {
+            $stmt = $db->prepare('SELECT is_paid FROM players WHERE id = :id');
+            $stmt->execute(['id' => $playerId]);
+            $player = $stmt->fetch();
+            return $player && $player['is_paid'];
+        } catch (PDOException $e) {
+            // Column doesn't exist yet - treat all as paid for now
+            return true;
+        }
     }
 
     public static function claimScorer(int $matchId, int $playerId): bool {
