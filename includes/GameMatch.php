@@ -98,10 +98,20 @@ class GameMatch {
     public static function getScores(int $id): ?array {
         $db = Database::getInstance();
 
-        // Get match status
-        $stmt = $db->prepare('SELECT status, scoring_mode, target_score FROM matches WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $match = $stmt->fetch();
+        // Get match status - handle both old and new schema
+        try {
+            $stmt = $db->prepare('SELECT status, scoring_mode, target_score FROM matches WHERE id = :id');
+            $stmt->execute(['id' => $id]);
+            $match = $stmt->fetch();
+        } catch (PDOException $e) {
+            $stmt = $db->prepare('SELECT status, total_ends as target_score FROM matches WHERE id = :id');
+            $stmt->execute(['id' => $id]);
+            $match = $stmt->fetch();
+            if ($match) {
+                $match['scoring_mode'] = 'ends';
+            }
+        }
+
         if (!$match) {
             return null;
         }
@@ -124,7 +134,7 @@ class GameMatch {
 
         return [
             'status' => $match['status'],
-            'scoring_mode' => $match['scoring_mode'],
+            'scoring_mode' => $match['scoring_mode'] ?? 'ends',
             'target_score' => $match['target_score'],
             'current_end' => count($ends) + 1,
             'ends' => $ends,
@@ -136,18 +146,33 @@ class GameMatch {
     public static function getLiveMatchesForClub(int $clubId): array {
         $db = Database::getInstance();
 
-        $stmt = $db->prepare('
-            SELECT m.id, m.game_type, m.total_ends, m.status, m.scorer_id,
-                   t1.team_name as team1_name, t2.team_name as team2_name,
-                   p.name as scorer_name
-            FROM matches m
-            LEFT JOIN match_teams t1 ON t1.match_id = m.id AND t1.team_number = 1
-            LEFT JOIN match_teams t2 ON t2.match_id = m.id AND t2.team_number = 2
-            LEFT JOIN players p ON p.id = m.scorer_id
-            WHERE m.club_id = :club_id AND m.status = "live"
-            ORDER BY m.started_at DESC
-        ');
-        $stmt->execute(['club_id' => $clubId]);
+        try {
+            // Try new schema first
+            $stmt = $db->prepare('
+                SELECT m.id, m.game_type, m.target_score, m.scoring_mode, m.status, m.scorer_id,
+                       t1.team_name as team1_name, t2.team_name as team2_name,
+                       p.name as scorer_name
+                FROM matches m
+                LEFT JOIN match_teams t1 ON t1.match_id = m.id AND t1.team_number = 1
+                LEFT JOIN match_teams t2 ON t2.match_id = m.id AND t2.team_number = 2
+                LEFT JOIN players p ON p.id = m.scorer_id
+                WHERE m.club_id = :club_id AND m.status = "live"
+                ORDER BY m.started_at DESC
+            ');
+            $stmt->execute(['club_id' => $clubId]);
+        } catch (PDOException $e) {
+            // Fall back to old schema
+            $stmt = $db->prepare('
+                SELECT m.id, m.game_type, m.total_ends as target_score, m.status,
+                       t1.team_name as team1_name, t2.team_name as team2_name
+                FROM matches m
+                LEFT JOIN match_teams t1 ON t1.match_id = m.id AND t1.team_number = 1
+                LEFT JOIN match_teams t2 ON t2.match_id = m.id AND t2.team_number = 2
+                WHERE m.club_id = :club_id AND m.status = "live"
+                ORDER BY m.started_at DESC
+            ');
+            $stmt->execute(['club_id' => $clubId]);
+        }
         $matches = $stmt->fetchAll();
 
         // Add scores to each match
@@ -157,6 +182,7 @@ class GameMatch {
             $match['team2_score'] = $scores['team2_score'];
             $match['current_end'] = $scores['current_end'];
             $match['ends'] = $scores['ends'];
+            $match['scorer_name'] = $match['scorer_name'] ?? null;
         }
 
         return $matches;
