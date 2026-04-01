@@ -295,7 +295,7 @@ $club = Club::find($match['club_id']);
                     </div>
                 </div>
                 <div class="end-info">
-                    End <span id="currentEnd"><?= $match['current_end'] ?></span> of <?= $match['total_ends'] ?>
+                    End <span id="currentEnd"><?= $match['current_end'] ?></span> of <?= $match['target_score'] ?? $match['total_ends'] ?? 21 ?>
                 </div>
             </div>
 
@@ -350,7 +350,7 @@ $club = Club::find($match['club_id']);
 
     <script>
     const MATCH_ID = <?= $matchId ?>;
-    const TOTAL_ENDS = <?= $match['total_ends'] ?>;
+    const TOTAL_ENDS = <?= $match['target_score'] ?? $match['total_ends'] ?? 21 ?>;
     let currentEnd = <?= $match['current_end'] ?>;
     let selectedTeam = null;
     let selectedShots = null;
