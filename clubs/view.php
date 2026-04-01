@@ -94,6 +94,16 @@ $userRole = $playerId ? ClubMember::getRole($club['id'], $playerId) : null;
                     </div>
                 </div>
 
+                <!-- Club Quick Actions -->
+                <?php if ($isMember): ?>
+                <div class="club-quick-actions">
+                    <a href="../matches/index.php?club=<?= $club['id'] ?>" class="btn-quick-action">
+                        <span class="action-icon">&#9679;</span>
+                        <span>Live Scores</span>
+                    </a>
+                </div>
+                <?php endif; ?>
+
                 <!-- Join/Leave Actions -->
                 <?php if ($isLoggedIn): ?>
                 <div class="club-actions">

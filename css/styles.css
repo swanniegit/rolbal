@@ -1458,6 +1458,40 @@ body {
     50% { box-shadow: 0 4px 25px rgba(76, 175, 80, 0.7); }
 }
 
+/* Club Quick Actions */
+.club-quick-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin: 1rem 0;
+}
+
+.btn-quick-action {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background: var(--green-light, #e8f5e9);
+    border: 2px solid var(--green-medium, #81c784);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--green-dark, #2d5016);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-quick-action:hover {
+    background: var(--green-medium, #81c784);
+    color: white;
+}
+
+.btn-quick-action .action-icon {
+    font-size: 1.2rem;
+    color: #ff4444;
+}
+
 /* Responsive adjustments */
 @media (max-width: 360px) {
     .club-grid {

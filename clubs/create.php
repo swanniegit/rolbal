@@ -71,7 +71,6 @@ $captcha = Captcha::generate();
                     <label for="captcha">Verify: <span id="captchaQuestion"><?= $captcha['question'] ?></span></label>
                     <div class="captcha-field">
                         <input type="number" id="captcha" name="captcha" required>
-                        <input type="hidden" id="captchaHash" name="captcha_hash" value="<?= $captcha['hash'] ?>">
                         <button type="button" id="refreshCaptcha" class="captcha-refresh">&#x21bb;</button>
                     </div>
                 </div>
@@ -129,7 +128,6 @@ $captcha = Captcha::generate();
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('captchaQuestion').textContent = data.question;
-                    document.getElementById('captchaHash').value = data.hash;
                     document.getElementById('captcha').value = '';
                 }
             } catch (err) {
@@ -146,10 +144,6 @@ $captcha = Captcha::generate();
 
             try {
                 const formData = new FormData(this);
-
-                // Validate captcha locally
-                const captchaAnswer = formData.get('captcha');
-                const captchaHash = formData.get('captcha_hash');
 
                 const res = await fetch('../api/club.php', {
                     method: 'POST',

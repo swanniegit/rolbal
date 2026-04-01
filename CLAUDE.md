@@ -63,6 +63,7 @@ Run migrations in order from `sql/` folder:
 2. `add_players.sql` - User accounts with email verification
 3. `add_clubs.sql` - Clubs and memberships
 4. `add_challenges.sql` - Challenge system tables + sample challenges
+5. `add_matches.sql` - Live match scoring tables
 
 ### Core Tables
 - `players` - User accounts (email, password_hash, verified, hand preference)
@@ -73,6 +74,10 @@ Run migrations in order from `sql/` folder:
 - `challenges` - Pre-defined challenge templates (name, difficulty, sequences)
 - `challenge_sequences` - Sequences within a challenge (end_length, delivery, bowl_count)
 - `challenge_attempts` - Player attempts at challenges (score, completion status)
+- `matches` - Live match records (club_id, game_type, status, total_ends)
+- `match_teams` - Teams in a match (team_number, team_name)
+- `match_players` - Players in a team (position, player_name)
+- `match_ends` - End scores (end_number, scoring_team, shots)
 
 ## Frontend Patterns
 
@@ -92,6 +97,9 @@ Run migrations in order from `sql/` folder:
 - `includes/Upload.php` - File uploads for club icons
 - `includes/Challenge.php` - Challenge model with scoring system
 - `includes/ChallengeAttempt.php` - Attempt tracking and progress
+- `api/match.php` - Match API (create, start, end, complete, scores)
+- `includes/GameMatch.php` - Match model with game type configs
+- `matches/` - Live match scoring UI (index, create, score, view)
 
 ## Challenge System
 
@@ -112,3 +120,32 @@ Challenges are pre-defined practice routines with sequences of bowls at specific
 3. Score calculated and accumulated per roll
 4. Auto-completes when all sequences finished
 5. Results page shows breakdown + attempt history
+
+## Match System
+
+Live match scoring for club members with real-time updates.
+
+### Game Types
+| Type | Players/Team | Bowls | Positions |
+|------|--------------|-------|-----------|
+| Singles | 1 | 4 | Skip |
+| Pairs | 2 | 3-4 | Skip, Lead |
+| Trips | 3 | 2-3 | Skip, Third, Lead |
+| Fours | 4 | 2 | Skip, Third, Second, Lead |
+
+### Match States
+- `setup` - Match created, waiting to start
+- `live` - Match in progress, scores being recorded
+- `completed` - Match finished
+
+### Access Control
+- **Create/Delete**: Club owner or admin
+- **Score**: Match creator or club admin
+- **View**: Any club member
+
+### Match Flow
+1. Admin creates match → selects game type, teams, players
+2. Start match → status becomes 'live'
+3. Record ends → select scoring team + shots (1-8)
+4. Viewers see auto-refresh (5 seconds) scoreboard
+5. Complete match → status becomes 'completed'
