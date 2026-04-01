@@ -1,0 +1,77 @@
+<?php
+require_once __DIR__ . '/includes/Auth.php';
+$isLoggedIn = Auth::check();
+$playerName = Auth::name();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2d5016">
+    <meta name="description" content="Rolbal - Lawn Bowls Statistics Tracker">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rolbal">
+
+    <title>Rolbal - Lawn Bowls Stats</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+    <link rel="apple-touch-icon" href="assets/logo.svg">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <?php if ($isLoggedIn): ?>
+            <div class="login-status">
+                <a href="players.php" class="player-link"><?= htmlspecialchars($playerName) ?></a>
+            </div>
+            <?php else: ?>
+            <div class="login-status">
+                <a href="login.php" class="login-link">Login</a>
+            </div>
+            <?php endif; ?>
+            <div class="logo-container">
+                <img src="assets/logo.svg" alt="Yellow Archer" class="logo">
+            </div>
+            <h1 class="app-title">Rolbal</h1>
+            <p class="app-tagline">Lawn Bowls Statistics</p>
+        </header>
+
+        <main class="main-content">
+            <nav class="main-nav">
+                <a href="game.php" class="nav-card">
+                    <span class="nav-icon">🎳</span>
+                    <span class="nav-label">New Game</span>
+                </a>
+                <?php if ($isLoggedIn): ?>
+                <a href="stats.php" class="nav-card">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Statistics</span>
+                </a>
+                <a href="history.php" class="nav-card">
+                    <span class="nav-icon">📜</span>
+                    <span class="nav-label">History</span>
+                </a>
+                <a href="players.php" class="nav-card">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Players</span>
+                </a>
+                <?php endif; ?>
+                <a href="clubs/index.php" class="nav-card">
+                    <span class="nav-icon">🏛️</span>
+                    <span class="nav-label">Clubs</span>
+                </a>
+            </nav>
+        </main>
+
+        <footer class="app-footer">
+            <p>Powered by <strong>Yellow Archer</strong></p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
