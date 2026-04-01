@@ -52,6 +52,7 @@ if (!$match) {
 }
 
 $club = Club::find($match['club_id']);
+$targetScore = $match['target_score'] ?? $match['total_ends'] ?? 21;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -62,14 +63,57 @@ $club = Club::find($match['club_id']);
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Rolbal - Score Match</title>
     <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            color: #333;
+        }
+        .header {
+            background: #2d5016;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.25rem;
+        }
+        .header h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .header-action {
+            background: rgba(255,255,255,0.2);
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .content {
+            padding: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .flash {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .flash-success { background: #d4edda; color: #155724; }
+        .flash-error { background: #f8d7da; color: #721c24; }
         .scoreboard {
-            background: var(--green-dark);
+            background: linear-gradient(135deg, #2d5016, #1e3a0f);
             color: white;
             border-radius: 12px;
-            padding: 1rem;
+            padding: 1.25rem;
             margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .scoreboard-header {
             display: flex;
@@ -77,29 +121,36 @@ $club = Club::find($match['club_id']);
             align-items: center;
             margin-bottom: 1rem;
         }
+        .match-type {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            text-transform: capitalize;
+        }
         .status-badge {
             font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
+            padding: 0.25rem 0.6rem;
             border-radius: 4px;
-            font-weight: 600;
+            font-weight: 700;
+            text-transform: uppercase;
         }
-        .status-badge.setup { background: #ffa500; }
-        .status-badge.live { background: #ff4444; animation: pulse 2s infinite; }
-        .status-badge.completed { background: var(--green-light); color: var(--green-dark); }
+        .status-badge.setup { background: #ff9800; color: white; }
+        .status-badge.live { background: #f44336; color: white; animation: pulse 2s infinite; }
+        .status-badge.completed { background: #4caf50; color: white; }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.6; }
         }
         .teams-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0.5rem 0;
         }
         .team-col {
             flex: 1;
-            text-align: center;
         }
         .team-col.left { text-align: left; }
+        .team-col.center { text-align: center; }
         .team-col.right { text-align: right; }
         .team-name {
             font-size: 0.9rem;
@@ -107,62 +158,95 @@ $club = Club::find($match['club_id']);
             margin-bottom: 0.25rem;
         }
         .team-score {
-            font-size: 2.5rem;
-            font-weight: bold;
+            font-size: 2.75rem;
+            font-weight: 800;
+            line-height: 1;
         }
         .vs-col {
-            padding: 0 1rem;
-            font-size: 0.8rem;
-            opacity: 0.7;
+            font-size: 1.5rem;
+            opacity: 0.5;
+            padding: 0 0.5rem;
         }
         .end-info {
             text-align: center;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            opacity: 0.8;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.9rem;
+            opacity: 0.85;
         }
-        .score-input-section {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 1.5rem;
+        .ends-history {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
-        .score-input-section h3 {
-            margin: 0 0 1rem;
+        .ends-history h4 {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ends-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .end-cell {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 6px;
+            background: #f0f0f0;
+            color: #666;
+        }
+        .end-cell.team-1 { background: #e3f2fd; color: #1565c0; }
+        .end-cell.team-2 { background: #ffebee; color: #c62828; }
+        .score-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .score-section h3 {
             text-align: center;
-            color: var(--green-dark);
+            color: #2d5016;
+            margin-bottom: 1rem;
+            font-size: 1rem;
         }
         .team-select {
-            display: flex;
-            gap: 0.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
             margin-bottom: 1rem;
         }
         .team-btn {
-            flex: 1;
             padding: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--white);
-            font-size: 0.9rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .team-btn:hover {
-            border-color: var(--green-medium);
-        }
-        .team-btn.active {
-            border-color: var(--green-dark);
-            background: var(--green-light);
-        }
+        .team-btn:hover { border-color: #aaa; }
         .team-btn.team-1.active {
-            border-color: #3498db;
-            background: rgba(52, 152, 219, 0.1);
+            border-color: #1565c0;
+            background: #e3f2fd;
+            color: #1565c0;
         }
         .team-btn.team-2.active {
-            border-color: #e74c3c;
-            background: rgba(231, 76, 60, 0.1);
+            border-color: #c62828;
+            background: #ffebee;
+            color: #c62828;
         }
         .shots-grid {
             display: grid;
@@ -172,185 +256,176 @@ $club = Club::find($match['club_id']);
         }
         .shot-btn {
             padding: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--white);
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
             font-size: 1.25rem;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .shot-btn:hover {
-            border-color: var(--green-medium);
-        }
+        .shot-btn:hover { border-color: #aaa; }
         .shot-btn.active {
-            border-color: var(--green-dark);
-            background: var(--green-light);
-            color: var(--green-dark);
+            border-color: #2d5016;
+            background: #e8f5e9;
+            color: #2d5016;
         }
         .submit-row {
             display: flex;
             gap: 0.5rem;
         }
-        .btn-submit-end {
-            flex: 1;
-            padding: 1rem;
-            font-size: 1rem;
-        }
         .btn-undo {
             padding: 1rem;
-            background: var(--white);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.25rem;
             cursor: pointer;
         }
-        .btn-undo:hover {
-            border-color: var(--green-medium);
+        .btn-undo:hover { border-color: #aaa; }
+        .btn-submit {
+            flex: 1;
+            padding: 1rem;
+            background: #2d5016;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
         }
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-start {
+            width: 100%;
+            padding: 1rem;
+            background: #2d5016;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        .btn-start:hover { background: #1e3a0f; }
         .action-buttons {
             display: flex;
             gap: 0.5rem;
-            margin-top: 1rem;
         }
-        .action-buttons button {
+        .btn-complete {
             flex: 1;
-            padding: 0.75rem;
-        }
-        .btn-start-match {
-            background: var(--green-dark);
+            padding: 0.85rem;
+            background: #4caf50;
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 1rem;
-            font-size: 1rem;
-            width: 100%;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
         }
-        .btn-complete {
-            background: #27ae60;
-        }
         .btn-delete {
-            background: #e74c3c;
-        }
-        .hidden { display: none; }
-        .ends-history {
-            background: var(--white);
+            flex: 1;
+            padding: 0.85rem;
+            background: white;
+            color: #c62828;
+            border: 2px solid #c62828;
             border-radius: 8px;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-        }
-        .ends-history h4 {
-            margin: 0 0 0.5rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .ends-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem;
-        }
-        .end-cell {
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            border-radius: 4px;
-            background: #f0f0f0;
+            cursor: pointer;
         }
-        .end-cell.team-1 { background: rgba(52, 152, 219, 0.2); color: #2980b9; }
-        .end-cell.team-2 { background: rgba(231, 76, 60, 0.2); color: #c0392b; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php?club=<?= $match['club_id'] ?>" class="back-btn">&larr;</a>
-            <h1 class="app-title">Score Match</h1>
-            <a href="view.php?id=<?= $matchId ?>" class="header-action">View</a>
-        </header>
+    <div class="header">
+        <a href="index.php?club=<?= $match['club_id'] ?>">&larr;</a>
+        <h1>Score Match</h1>
+        <a href="view.php?id=<?= $matchId ?>" class="header-action">View</a>
+    </div>
 
-        <main class="main-content">
-            <?php if ($flash): ?>
-            <div class="flash flash-<?= $flash['type'] ?>"><?= htmlspecialchars($flash['message']) ?></div>
-            <?php endif; ?>
+    <div class="content">
+        <?php if ($flash): ?>
+        <div class="flash flash-<?= $flash['type'] ?>"><?= htmlspecialchars($flash['message']) ?></div>
+        <?php endif; ?>
 
-            <!-- Scoreboard -->
-            <div class="scoreboard">
-                <div class="scoreboard-header">
-                    <span class="match-type"><?= ucfirst($match['game_type']) ?></span>
-                    <span class="status-badge <?= $match['status'] ?>" id="statusBadge"><?= strtoupper($match['status']) ?></span>
+        <!-- Scoreboard -->
+        <div class="scoreboard">
+            <div class="scoreboard-header">
+                <span class="match-type"><?= htmlspecialchars($match['game_type']) ?></span>
+                <span class="status-badge <?= $match['status'] ?>"><?= strtoupper($match['status']) ?></span>
+            </div>
+            <div class="teams-row">
+                <div class="team-col left">
+                    <div class="team-name"><?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?></div>
+                    <div class="team-score" id="team1Score"><?= $match['team1_score'] ?></div>
                 </div>
-                <div class="teams-row">
-                    <div class="team-col left">
-                        <div class="team-name" id="team1Name"><?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?></div>
-                        <div class="team-score" id="team1Score"><?= $match['team1_score'] ?></div>
-                    </div>
-                    <div class="vs-col">-</div>
-                    <div class="team-col right">
-                        <div class="team-name" id="team2Name"><?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></div>
-                        <div class="team-score" id="team2Score"><?= $match['team2_score'] ?></div>
-                    </div>
-                </div>
-                <div class="end-info">
-                    End <span id="currentEnd"><?= $match['current_end'] ?></span> of <?= $match['target_score'] ?? $match['total_ends'] ?? 21 ?>
+                <div class="team-col center vs-col">-</div>
+                <div class="team-col right">
+                    <div class="team-name"><?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></div>
+                    <div class="team-score" id="team2Score"><?= $match['team2_score'] ?></div>
                 </div>
             </div>
+            <div class="end-info">
+                End <span id="currentEnd"><?= $match['current_end'] ?></span> of <?= $targetScore ?>
+            </div>
+        </div>
 
-            <!-- Ends History -->
-            <div class="ends-history" id="endsHistory">
-                <h4>Ends</h4>
-                <div class="ends-grid" id="endsGrid">
-                    <?php foreach ($match['ends'] as $end): ?>
-                    <div class="end-cell team-<?= $end['scoring_team'] ?>"><?= $end['shots'] ?></div>
-                    <?php endforeach; ?>
-                </div>
+        <!-- Ends History -->
+        <div class="ends-history">
+            <h4>Ends</h4>
+            <div class="ends-grid" id="endsGrid">
+                <?php foreach ($match['ends'] as $end): ?>
+                <div class="end-cell team-<?= $end['scoring_team'] ?>"><?= $end['shots'] ?></div>
+                <?php endforeach; ?>
+                <?php if (empty($match['ends'])): ?>
+                <span style="color: #999; font-size: 0.85rem;">No ends recorded yet</span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Start Match (when in setup) -->
+        <?php if ($match['status'] === 'setup'): ?>
+        <button type="button" class="btn-start" id="startMatchBtn">Start Match</button>
+        <div class="action-buttons">
+            <button type="button" class="btn-delete" id="deleteBtn">Delete Match</button>
+        </div>
+        <?php endif; ?>
+
+        <!-- Score Input (when live) -->
+        <?php if ($match['status'] === 'live'): ?>
+        <div class="score-section">
+            <h3>Record End <?= $match['current_end'] ?></h3>
+
+            <div class="team-select">
+                <button type="button" class="team-btn team-1" data-team="1"><?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?></button>
+                <button type="button" class="team-btn team-2" data-team="2"><?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></button>
             </div>
 
-            <!-- Start Match (when in setup) -->
-            <?php if ($match['status'] === 'setup'): ?>
-            <button type="button" class="btn-start-match" id="startMatchBtn">Start Match</button>
-            <?php endif; ?>
-
-            <!-- Score Input (when live) -->
-            <div class="score-input-section <?= $match['status'] !== 'live' ? 'hidden' : '' ?>" id="scoreSection">
-                <h3>Record End <?= $match['current_end'] ?></h3>
-
-                <div class="team-select">
-                    <button type="button" class="team-btn team-1" data-team="1"><?= htmlspecialchars($match['teams'][0]['team_name'] ?? 'Team 1') ?></button>
-                    <button type="button" class="team-btn team-2" data-team="2"><?= htmlspecialchars($match['teams'][1]['team_name'] ?? 'Team 2') ?></button>
-                </div>
-
-                <div class="shots-grid">
-                    <?php for ($i = 1; $i <= 8; $i++): ?>
-                    <button type="button" class="shot-btn" data-shots="<?= $i ?>"><?= $i ?></button>
-                    <?php endfor; ?>
-                </div>
-
-                <div class="submit-row">
-                    <button type="button" class="btn-undo" id="undoBtn" title="Undo last end">&#8630;</button>
-                    <button type="button" class="btn-primary btn-submit-end" id="submitEndBtn" disabled>Submit End</button>
-                </div>
+            <div class="shots-grid">
+                <?php for ($i = 1; $i <= 8; $i++): ?>
+                <button type="button" class="shot-btn" data-shots="<?= $i ?>"><?= $i ?></button>
+                <?php endfor; ?>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="action-buttons <?= $match['status'] !== 'live' ? 'hidden' : '' ?>" id="actionSection">
-                <button type="button" class="btn-primary btn-complete" id="completeBtn">End Match</button>
+            <div class="submit-row">
+                <button type="button" class="btn-undo" id="undoBtn" title="Undo last end">&#8630;</button>
+                <button type="button" class="btn-submit" id="submitEndBtn" disabled>Submit End</button>
             </div>
+        </div>
 
-            <?php if ($match['status'] === 'setup'): ?>
-            <div class="action-buttons">
-                <button type="button" class="btn-secondary btn-delete" id="deleteBtn">Delete Match</button>
-            </div>
-            <?php endif; ?>
-        </main>
+        <div class="action-buttons">
+            <button type="button" class="btn-complete" id="completeBtn">End Match</button>
+        </div>
+        <?php endif; ?>
     </div>
 
     <script>
     const MATCH_ID = <?= $matchId ?>;
-    const TOTAL_ENDS = <?= $match['target_score'] ?? $match['total_ends'] ?? 21 ?>;
+    const TOTAL_ENDS = <?= $targetScore ?>;
     let currentEnd = <?= $match['current_end'] ?>;
     let selectedTeam = null;
     let selectedShots = null;
@@ -385,68 +460,72 @@ $club = Club::find($match['club_id']);
         });
 
         function updateSubmitBtn() {
-            submitBtn.disabled = !(selectedTeam && selectedShots);
+            if (submitBtn) submitBtn.disabled = !(selectedTeam && selectedShots);
         }
 
         // Submit end
-        submitBtn.addEventListener('click', async () => {
-            if (!selectedTeam || !selectedShots) return;
+        if (submitBtn) {
+            submitBtn.addEventListener('click', async () => {
+                if (!selectedTeam || !selectedShots) return;
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
 
-            try {
-                const formData = new FormData();
-                formData.append('action', 'end');
-                formData.append('match_id', MATCH_ID);
-                formData.append('end_number', currentEnd);
-                formData.append('scoring_team', selectedTeam);
-                formData.append('shots', selectedShots);
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'end');
+                    formData.append('match_id', MATCH_ID);
+                    formData.append('end_number', currentEnd);
+                    formData.append('scoring_team', selectedTeam);
+                    formData.append('shots', selectedShots);
 
-                const res = await fetch('../api/match.php', { method: 'POST', body: formData });
-                const data = await res.json();
+                    const res = await fetch('../api/match.php', { method: 'POST', body: formData });
+                    const data = await res.json();
 
-                if (data.success) {
-                    updateScoreboard(data);
-                    clearSelection();
-                } else {
-                    alert(data.error || 'Failed to record end');
+                    if (data.success !== false) {
+                        updateScoreboard(data);
+                        clearSelection();
+                    } else {
+                        alert(data.error || 'Failed to record end');
+                    }
+                } catch (err) {
+                    alert('Network error');
                 }
-            } catch (err) {
-                alert('Network error');
-            }
 
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit End';
-            updateSubmitBtn();
-        });
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit End';
+                updateSubmitBtn();
+            });
+        }
 
         // Undo
-        undoBtn.addEventListener('click', async () => {
-            if (!confirm('Undo last end?')) return;
+        if (undoBtn) {
+            undoBtn.addEventListener('click', async () => {
+                if (!confirm('Undo last end?')) return;
 
-            undoBtn.disabled = true;
+                undoBtn.disabled = true;
 
-            try {
-                const formData = new FormData();
-                formData.append('action', 'undo');
-                formData.append('match_id', MATCH_ID);
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'undo');
+                    formData.append('match_id', MATCH_ID);
 
-                const res = await fetch('../api/match.php', { method: 'POST', body: formData });
-                const data = await res.json();
+                    const res = await fetch('../api/match.php', { method: 'POST', body: formData });
+                    const data = await res.json();
 
-                if (data.success) {
-                    updateScoreboard(data);
-                    clearSelection();
-                } else {
-                    alert(data.error || 'Nothing to undo');
+                    if (data.success !== false) {
+                        updateScoreboard(data);
+                        clearSelection();
+                    } else {
+                        alert(data.error || 'Nothing to undo');
+                    }
+                } catch (err) {
+                    alert('Network error');
                 }
-            } catch (err) {
-                alert('Network error');
-            }
 
-            undoBtn.disabled = false;
-        });
+                undoBtn.disabled = false;
+            });
+        }
 
         // Start match
         if (startBtn) {
@@ -462,7 +541,7 @@ $club = Club::find($match['club_id']);
                     const res = await fetch('../api/match.php', { method: 'POST', body: formData });
                     const data = await res.json();
 
-                    if (data.success) {
+                    if (data.success !== false) {
                         location.reload();
                     } else {
                         alert(data.error || 'Failed to start match');
@@ -493,7 +572,7 @@ $club = Club::find($match['club_id']);
                     const res = await fetch('../api/match.php', { method: 'POST', body: formData });
                     const data = await res.json();
 
-                    if (data.success) {
+                    if (data.success !== false) {
                         window.location.href = 'view.php?id=' + MATCH_ID;
                     } else {
                         alert(data.error || 'Failed to end match');
@@ -520,7 +599,7 @@ $club = Club::find($match['club_id']);
                     const res = await fetch('../api/match.php?id=' + MATCH_ID, { method: 'DELETE' });
                     const data = await res.json();
 
-                    if (data.success) {
+                    if (data.success !== false) {
                         window.location.href = 'index.php?club=<?= $match['club_id'] ?>';
                     } else {
                         alert(data.error || 'Failed to delete match');
@@ -543,16 +622,17 @@ $club = Club::find($match['club_id']);
 
             // Update ends grid
             const grid = document.getElementById('endsGrid');
-            grid.innerHTML = '';
-            data.ends.forEach(end => {
-                const cell = document.createElement('div');
-                cell.className = 'end-cell team-' + end.scoring_team;
-                cell.textContent = end.shots;
-                grid.appendChild(cell);
-            });
+            if (data.ends.length === 0) {
+                grid.innerHTML = '<span style="color: #999; font-size: 0.85rem;">No ends recorded yet</span>';
+            } else {
+                grid.innerHTML = data.ends.map(end =>
+                    `<div class="end-cell team-${end.scoring_team}">${end.shots}</div>`
+                ).join('');
+            }
 
             // Update section title
-            document.querySelector('.score-input-section h3').textContent = 'Record End ' + currentEnd;
+            const h3 = document.querySelector('.score-section h3');
+            if (h3) h3.textContent = 'Record End ' + currentEnd;
         }
 
         function clearSelection() {
