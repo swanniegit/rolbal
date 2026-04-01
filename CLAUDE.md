@@ -54,6 +54,7 @@ Bowl recording uses numeric codes:
 - **Delivery:** 13=Backhand, 14=Forehand
 - **End Length:** 9=Long, 10=Middle, 11=Short
 - **Result Position:** 1-8,12 (grid positions like Short Left, Centre, Long Right)
+- **Miss Position:** 20-23 (Too Far Left, Too Far Right, Too Long/Ditch, Too Short)
 
 ## Database Schema
 
@@ -61,13 +62,17 @@ Run migrations in order from `sql/` folder:
 1. `schema.sql` - Base tables (sessions, rolls)
 2. `add_players.sql` - User accounts with email verification
 3. `add_clubs.sql` - Clubs and memberships
+4. `add_challenges.sql` - Challenge system tables + sample challenges
 
 ### Core Tables
 - `players` - User accounts (email, password_hash, verified, hand preference)
 - `sessions` - Practice sessions (player_id, hand, date, visibility)
-- `rolls` - Individual bowl recordings (session_id, end_number, end_length, result, toucher)
+- `rolls` - Individual bowl recordings (session_id, end_number, end_length, delivery, result, toucher)
 - `clubs` - Bowling clubs with owner and members
 - `club_members` - Club membership with roles (owner/admin/member)
+- `challenges` - Pre-defined challenge templates (name, difficulty, sequences)
+- `challenge_sequences` - Sequences within a challenge (end_length, delivery, bowl_count)
+- `challenge_attempts` - Player attempts at challenges (score, completion status)
 
 ## Frontend Patterns
 
@@ -81,5 +86,29 @@ Run migrations in order from `sql/` folder:
 
 - `api/session.php` - Session CRUD + visibility toggle
 - `api/roll.php` - Roll CRUD + undo (DELETE with `?undo=1`)
+- `api/challenge.php` - Challenge API (list, start, roll, complete, history)
 - `js/game.js` - Roll recording UI with end/bowl progression
+- `js/challenge.js` - Challenge game UI with sequence progression
 - `includes/Upload.php` - File uploads for club icons
+- `includes/Challenge.php` - Challenge model with scoring system
+- `includes/ChallengeAttempt.php` - Attempt tracking and progress
+
+## Challenge System
+
+Challenges are pre-defined practice routines with sequences of bowls at specific end lengths and deliveries.
+
+### Scoring (per bowl)
+- Centre: 10 points
+- Level Left/Right: 7 points
+- Long/Short Centre: 5 points
+- Long Left/Right: 3 points
+- Short Left/Right: 2 points
+- Miss positions: 0 points
+- Toucher bonus: +5 points
+
+### Challenge Flow
+1. Player starts challenge → creates attempt + hidden session
+2. Each roll records: end_length, delivery (from sequence), result, toucher
+3. Score calculated and accumulated per roll
+4. Auto-completes when all sequences finished
+5. Results page shows breakdown + attempt history

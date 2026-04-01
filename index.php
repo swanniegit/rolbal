@@ -60,6 +60,10 @@ $playerName = Auth::name();
                     <span class="nav-label">Players</span>
                 </a>
                 <?php endif; ?>
+                <a href="challenges/index.php" class="nav-card">
+                    <span class="nav-icon">🎯</span>
+                    <span class="nav-label">Challenges</span>
+                </a>
                 <a href="clubs/index.php" class="nav-card">
                     <span class="nav-icon">🏛️</span>
                     <span class="nav-label">Clubs</span>

@@ -194,16 +194,25 @@ if ($sessionId) {
             <div class="roll-step <?= $needEndLength ? 'hidden' : '' ?>" id="stepResult">
                 <h2>Bowl <?= $currentBowl ?></h2>
                 <div class="result-row">
-                    <div class="green-grid">
-                        <button type="button" class="btn-pos" data-field="result" data-value="5">Long Left</button>
-                        <button type="button" class="btn-pos" data-field="result" data-value="7">Long Centre</button>
-                        <button type="button" class="btn-pos" data-field="result" data-value="6">Long Right</button>
-                        <button type="button" class="btn-pos" data-field="result" data-value="3">Level Left</button>
-                        <button type="button" class="btn-pos target" data-field="result" data-value="8">Centre</button>
-                        <button type="button" class="btn-pos" data-field="result" data-value="4">Level Right</button>
-                        <button type="button" class="btn-pos" data-field="result" data-value="1">Short Left</button>
-                        <button type="button" class="btn-pos" data-field="result" data-value="12">Short Centre</button>
-                        <button type="button" class="btn-pos" data-field="result" data-value="2">Short Right</button>
+                    <div class="green-container">
+                        <!-- Row 1: Top miss bar -->
+                        <button type="button" class="btn-miss btn-miss-top" data-field="result" data-value="22">Too Long / Ditch</button>
+                        <!-- Row 2: Left bar, Grid, Right bar -->
+                        <button type="button" class="btn-miss btn-miss-left" data-field="result" data-value="20">Too Far Left</button>
+                        <div class="green-grid">
+                            <button type="button" class="btn-pos" data-field="result" data-value="5">Long Left</button>
+                            <button type="button" class="btn-pos" data-field="result" data-value="7">Long Centre</button>
+                            <button type="button" class="btn-pos" data-field="result" data-value="6">Long Right</button>
+                            <button type="button" class="btn-pos" data-field="result" data-value="3">Level Left</button>
+                            <button type="button" class="btn-pos target" data-field="result" data-value="8">Centre</button>
+                            <button type="button" class="btn-pos" data-field="result" data-value="4">Level Right</button>
+                            <button type="button" class="btn-pos" data-field="result" data-value="1">Short Left</button>
+                            <button type="button" class="btn-pos" data-field="result" data-value="12">Short Centre</button>
+                            <button type="button" class="btn-pos" data-field="result" data-value="2">Short Right</button>
+                        </div>
+                        <button type="button" class="btn-miss btn-miss-right" data-field="result" data-value="21">Too Far Right</button>
+                        <!-- Row 3: Bottom miss bar -->
+                        <button type="button" class="btn-miss btn-miss-bottom" data-field="result" data-value="23">Too Short</button>
                     </div>
                     <button type="button" class="btn-toucher" id="toucherBtn">Toucher</button>
                 </div>

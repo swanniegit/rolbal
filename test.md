@@ -73,3 +73,59 @@
 - [ ] Test on mobile viewport
 - [ ] Verify touch targets are adequate
 - [ ] Test PWA install prompt
+
+## Challenge System
+
+### Database Setup
+- [ ] Run `sql/add_challenges.sql`
+- [ ] Verify `challenges` table has sample data
+- [ ] Verify `challenge_sequences` table populated
+- [ ] Verify `challenge_attempts` table exists
+
+### Challenge List
+- [ ] Navigate to `/challenges/index.php`
+- [ ] Verify sample challenges display (Full Routine, Quick Draw, etc.)
+- [ ] Verify difficulty badges show (beginner/intermediate/advanced)
+- [ ] Verify bowl count and sequence count display
+- [ ] Anonymous users see "Login to Play" prompt
+- [ ] Logged-in users can click to start
+
+### Playing a Challenge
+- [ ] Click a challenge card to start
+- [ ] Verify start prompt shows challenge overview
+- [ ] Click "Start Challenge"
+- [ ] Verify sequence info displays (end length, delivery)
+- [ ] Verify delivery indicator shows Forehand/Backhand
+- [ ] Record a bowl position
+- [ ] Verify score popup shows points earned
+- [ ] Verify total score updates
+- [ ] Verify progress bar advances
+- [ ] Test Toucher button (adds +5 bonus)
+- [ ] Test Undo button
+- [ ] Test miss zone buttons (Too Long, Too Short, Too Far Left/Right)
+- [ ] Complete all sequences
+- [ ] Verify auto-redirect to results page
+
+### Challenge Results
+- [ ] Verify total score and percentage display
+- [ ] Verify "New Personal Best" badge when applicable
+- [ ] Verify score breakdown by sequence
+- [ ] Verify previous attempts history shows
+- [ ] Click previous attempt to view its breakdown
+- [ ] Click "Play Again" to start new attempt
+
+### Challenge Progress Persistence
+- [ ] Start a challenge, record some bowls
+- [ ] Click "Quit" or navigate away
+- [ ] Return to challenges list
+- [ ] Verify "In Progress (X/Y)" badge shows
+- [ ] Click to resume challenge
+- [ ] Verify progress is preserved
+
+### Challenge History
+- [ ] Complete multiple attempts of same challenge
+- [ ] View results page
+- [ ] Verify all completed attempts listed
+- [ ] Verify best score highlighted
+- [ ] Click "Best" badge on challenge list
+- [ ] Verify links to results page

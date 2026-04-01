@@ -22,7 +22,7 @@ try {
             throw new Exception('Invalid end length');
         }
 
-        if (!in_array($result, [1, 2, 3, 4, 5, 6, 7, 8, 12])) {
+        if (!in_array($result, [1, 2, 3, 4, 5, 6, 7, 8, 12, 20, 21, 22, 23])) {
             throw new Exception('Invalid result');
         }
 

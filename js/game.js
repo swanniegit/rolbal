@@ -122,8 +122,8 @@ function initRollRecording(sessionId) {
         });
     });
 
-    // Result position selection
-    stepResult.querySelectorAll('.btn-pos').forEach(btn => {
+    // Result position selection (including miss buttons)
+    stepResult.querySelectorAll('.btn-pos, .btn-miss').forEach(btn => {
         btn.addEventListener('click', () => saveRoll(parseInt(btn.dataset.value)));
     });
 
