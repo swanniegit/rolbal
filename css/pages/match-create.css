@@ -1,0 +1,176 @@
+/**
+ * Match Create Page Styles
+ */
+
+.form-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.form-section h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: #2d5016;
+    font-weight: 600;
+}
+
+.game-type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.game-type-btn {
+    padding: 1rem 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.game-type-btn:hover {
+    border-color: #81c784;
+    background: #f5fff5;
+}
+
+.game-type-btn.active {
+    border-color: #2d5016;
+    background: #e8f5e9;
+}
+
+.game-type-btn .name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #333;
+    display: block;
+}
+
+.game-type-btn .desc {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 0.25rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0;
+}
+
+.form-group {
+    margin-bottom: 0.75rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2d5016;
+}
+
+.team-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.team-section.team-1 {
+    border-left: 4px solid #3498db;
+}
+
+.team-section.team-2 {
+    border-left: 4px solid #e74c3c;
+}
+
+.team-section h4 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.team-1 h4 { color: #3498db; }
+.team-2 h4 { color: #e74c3c; }
+
+.position-row {
+    margin-bottom: 0.75rem;
+}
+
+.position-row:last-child {
+    margin-bottom: 0;
+}
+
+.position-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.position-row input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.position-row input:focus {
+    outline: none;
+    border-color: #2d5016;
+}
+
+.hidden { display: none !important; }
+
+.btn-start {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    border-radius: 10px;
+    background: #2d5016;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-start:hover {
+    background: #1e3a0f;
+}
+
+.btn-start:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}

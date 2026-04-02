@@ -1,0 +1,187 @@
+/**
+ * Challenge Play Page Styles
+ */
+
+.challenge-info {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.challenge-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.sequence-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.sequence-text {
+    font-size: 0.875rem;
+    color: var(--text);
+}
+
+.sequence-text strong {
+    color: var(--primary);
+}
+
+.delivery-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.delivery-forehand {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.delivery-backhand {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.end-length-indicator {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--primary-light);
+    color: white;
+}
+
+.score-display {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.score-current {
+    color: var(--primary);
+}
+
+.score-max {
+    color: var(--text-muted);
+}
+
+.progress-detail {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+.bowl-indicator {
+    text-align: center;
+    margin: 1.5rem 0 1rem;
+}
+
+.bowl-indicator h2 {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+}
+
+.start-prompt {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 2rem 1.5rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.start-prompt h2 {
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.start-prompt p {
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.sequence-preview {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: left;
+}
+
+.sequence-preview-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.sequence-preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.sequence-preview-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sequence-preview-item:last-child {
+    border-bottom: none;
+}
+
+.result-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.score-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.score-popup.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
