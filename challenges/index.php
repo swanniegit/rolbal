@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Challenge.php';
 require_once __DIR__ . '/../includes/constants.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $playerId = Auth::id();
@@ -22,16 +23,9 @@ $difficultyColors = [
     'intermediate' => '#ff9800',
     'advanced' => '#f44336'
 ];
+
+Template::pageHead('Challenges', [], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <title>Challenges - Rolbal</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
     <style>
         .challenge-grid {
             display: flex;
@@ -157,14 +151,9 @@ $difficultyColors = [
             margin-bottom: 1rem;
         }
     </style>
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="../index.php" class="back-btn">&larr;</a>
-            <h1 class="app-title">Challenges</h1>
-            <span></span>
-        </header>
+        <?php Template::header('Challenges', '../index.php'); ?>
 
         <main class="main-content">
             <?php if (!$isLoggedIn): ?>
@@ -179,9 +168,7 @@ $difficultyColors = [
             <?php endif; ?>
 
             <?php if (empty($challenges)): ?>
-            <div class="empty-state">
-                <p>No challenges available yet.</p>
-            </div>
+            <?php Template::emptyState('No challenges available yet.'); ?>
             <?php else: ?>
             <div class="challenge-grid">
                 <?php foreach ($challenges as $challenge): ?>

@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Challenge.php';
 require_once __DIR__ . '/../includes/ChallengeAttempt.php';
 require_once __DIR__ . '/../includes/constants.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 // Require login
 if (!Auth::check()) {
@@ -72,25 +73,12 @@ $currentBowlInSeq = $progress ? $progress['current_bowl_in_sequence'] : 1;
 $currentSeq = $sequences[$currentSeqIndex] ?? null;
 $totalScore = $progress ? $progress['total_score'] : 0;
 $rollCount = $progress ? $progress['roll_count'] : 0;
+
+Template::pageHead($challenge['name'], ['../css/pages/challenge-play.css'], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <title><?= htmlspecialchars($challenge['name']) ?> - Rolbal</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/pages/challenge-play.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php" class="back-btn">&larr;</a>
-            <h1 class="app-title"><?= htmlspecialchars($challenge['name']) ?></h1>
-            <span class="roll-count" id="totalScore"><?= $totalScore ?></span>
-        </header>
+        <?php Template::header($challenge['name'], 'index.php', '<span class="roll-count" id="totalScore">' . $totalScore . '</span>'); ?>
 
         <main class="main-content">
             <?php if (!$attemptId): ?>

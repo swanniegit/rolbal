@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Club.php';
 require_once __DIR__ . '/../includes/GameMatch.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $playerId = Auth::id();
@@ -73,9 +74,7 @@ $targetScore = $match['target_score'] ?? $match['total_ends'] ?? 21;
     </div>
 
     <div class="content">
-        <?php if ($flash): ?>
-        <div class="flash flash-<?= $flash['type'] ?>"><?= htmlspecialchars($flash['message']) ?></div>
-        <?php endif; ?>
+        <?php Template::flash($flash); ?>
 
         <!-- Scoreboard -->
         <div class="scoreboard">

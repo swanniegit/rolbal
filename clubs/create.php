@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Captcha.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
 
@@ -17,32 +18,19 @@ if (!$isLoggedIn) {
 $playerName = Auth::name();
 $csrfToken = Auth::generateCsrfToken();
 $captcha = Captcha::generate();
+
+Template::pageHead('Create Club', [], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - Create Club</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php" class="back-btn">&larr;</a>
-            <h1 class="app-title">Create Club</h1>
-            <span></span>
-        </header>
+        <?php Template::header('Create Club', 'index.php'); ?>
 
         <main class="main-content">
             <form id="createClubForm" class="form-card" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="create">
                 <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
 
-                <div id="formError" class="form-error hidden"></div>
+                <?php Template::formError(); ?>
 
                 <div class="form-group">
                     <label for="name">Club Name</label>

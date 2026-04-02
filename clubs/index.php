@@ -5,33 +5,21 @@
 
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Club.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $playerName = Auth::name();
 $clubs = Club::all();
+
+$rightHtml = $isLoggedIn
+    ? '<a href="create.php" class="header-action">+ New</a>'
+    : '<a href="../login.php" class="header-action">Login</a>';
+
+Template::pageHead('Clubs', [], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - Clubs</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="../index.php" class="back-btn">&larr;</a>
-            <h1 class="app-title">Clubs</h1>
-            <?php if ($isLoggedIn): ?>
-            <a href="create.php" class="header-action">+ New</a>
-            <?php else: ?>
-            <a href="../login.php" class="header-action">Login</a>
-            <?php endif; ?>
-        </header>
+        <?php Template::header('Clubs', '../index.php', $rightHtml); ?>
 
         <main class="main-content">
             <div class="search-bar">

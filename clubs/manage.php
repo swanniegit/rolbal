@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Club.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/constants.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $playerId = Auth::id();
@@ -39,28 +40,15 @@ if (!Club::canManage($club['id'], $playerId)) {
 $members = Club::getMembers($club['id']);
 $isOwner = Club::isOwner($club['id'], $playerId);
 $csrfToken = Auth::generateCsrfToken();
+
+Template::pageHead('Manage ' . $club['name'], [], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - Manage <?= htmlspecialchars($club['name']) ?></title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="view.php?slug=<?= htmlspecialchars($slug) ?>" class="back-btn">&larr;</a>
-            <h1 class="app-title">Manage Club</h1>
-            <span></span>
-        </header>
+        <?php Template::header('Manage Club', 'view.php?slug=' . htmlspecialchars($slug)); ?>
 
         <main class="main-content">
-            <div id="formMessage" class="flash hidden"></div>
+            <?php Template::formMessage(); ?>
 
             <!-- Edit Club Details -->
             <div class="form-card">

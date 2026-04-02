@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Club.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/GameMatch.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $playerId = Auth::id();
@@ -40,31 +41,15 @@ if (!$club) {
 
 $gameTypes = GameMatch::getGameTypes();
 $members = Club::getMembers($clubId);
+
+Template::pageHead('New Match', ['../css/pages/match-create.css'], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - New Match</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/pages/match-create.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php?club=<?= $clubId ?>" class="back-btn">&larr;</a>
-            <h1 class="app-title">New Match</h1>
-            <span></span>
-        </header>
+        <?php Template::header('New Match', 'index.php?club=' . $clubId); ?>
 
         <main class="main-content">
-            <?php if ($flash): ?>
-            <div class="flash flash-<?= $flash['type'] ?>"><?= htmlspecialchars($flash['message']) ?></div>
-            <?php endif; ?>
+            <?php Template::flash($flash); ?>
 
             <form id="matchForm">
                 <input type="hidden" name="action" value="create">

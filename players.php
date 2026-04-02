@@ -7,6 +7,7 @@ require_once __DIR__ . '/includes/constants.php';
 require_once __DIR__ . '/includes/Auth.php';
 require_once __DIR__ . '/includes/Player.php';
 require_once __DIR__ . '/includes/ClubMember.php';
+require_once __DIR__ . '/includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $currentUser = $isLoggedIn ? Auth::user() : null;
@@ -36,34 +37,21 @@ if ($isOwnProfile && $currentUser) {
     $playerClubs = [];
     $primaryClub = null;
 }
+
+$pageTitle = $player ? htmlspecialchars($player['name']) : 'Players';
+$headerTitle = $player ? 'Profile' : 'Players';
+$rightHtml = $isLoggedIn
+    ? '<a href="api/auth.php?action=logout" class="logout-btn" id="logoutBtn">Logout</a>'
+    : '<span></span>';
+
+Template::pageHead($pageTitle);
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - <?= $player ? htmlspecialchars($player['name']) : 'Players' ?></title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/styles.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php" class="back-btn">&larr;</a>
-            <h1 class="app-title"><?= $player ? 'Profile' : 'Players' ?></h1>
-            <?php if ($isLoggedIn): ?>
-            <a href="api/auth.php?action=logout" class="logout-btn" id="logoutBtn">Logout</a>
-            <?php else: ?>
-            <span></span>
-            <?php endif; ?>
-        </header>
+        <?php Template::header($headerTitle, 'index.php', $rightHtml); ?>
 
         <main class="main-content">
-            <?php if ($flash): ?>
-            <div class="flash flash-<?= $flash['type'] ?>"><?= htmlspecialchars($flash['message']) ?></div>
-            <?php endif; ?>
+            <?php Template::flash($flash); ?>
 
             <?php if ($player): ?>
             <!-- Player Profile -->
@@ -172,17 +160,12 @@ if ($isOwnProfile && $currentUser) {
                 <?php endforeach; ?>
             </div>
             <?php elseif ($isOwnProfile): ?>
-            <div class="empty-state">
-                <p>No sessions yet.</p>
-                <a href="game.php" class="btn-primary">Start Your First Game</a>
-            </div>
+            <?php Template::emptyState('No sessions yet.', 'game.php', 'Start Your First Game'); ?>
             <?php endif; ?>
 
             <?php elseif ($isLoggedIn): ?>
             <!-- Should not happen, but fallback -->
-            <div class="empty-state">
-                <p>Profile not found.</p>
-            </div>
+            <?php Template::emptyState('Profile not found.'); ?>
 
             <?php else: ?>
             <!-- Not logged in, no player specified -->

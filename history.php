@@ -6,6 +6,7 @@
 require_once __DIR__ . '/includes/constants.php';
 require_once __DIR__ . '/includes/Session.php';
 require_once __DIR__ . '/includes/Auth.php';
+require_once __DIR__ . '/includes/Template.php';
 
 $isLoggedIn = Auth::check();
 
@@ -17,32 +18,16 @@ if (!$isLoggedIn) {
 
 $currentPlayerId = Auth::id();
 $sessions = Session::forPlayer($currentPlayerId);
+
+Template::pageHead('History');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Rolbal - History</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/styles.css?v=3">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php" class="back-btn">&larr;</a>
-            <h1 class="app-title">History</h1>
-            <span class="roll-count"><?= count($sessions) ?></span>
-        </header>
+        <?php Template::header('History', 'index.php', '<span class="roll-count">' . count($sessions) . '</span>'); ?>
 
         <main class="main-content">
             <?php if (empty($sessions)): ?>
-            <div class="empty-state">
-                <p>No games recorded yet</p>
-                <a href="game.php" class="btn-primary">Start New Game</a>
-            </div>
+            <?php Template::emptyState('No games recorded yet', 'game.php', 'Start New Game'); ?>
             <?php else: ?>
             <div class="session-list">
                 <?php foreach ($sessions as $s):

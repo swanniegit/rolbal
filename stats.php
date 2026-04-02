@@ -7,6 +7,7 @@ require_once __DIR__ . '/includes/constants.php';
 require_once __DIR__ . '/includes/Session.php';
 require_once __DIR__ . '/includes/Roll.php';
 require_once __DIR__ . '/includes/Auth.php';
+require_once __DIR__ . '/includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $sessionId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -28,33 +29,20 @@ if ($sessionId) {
     header('Location: login.php');
     exit;
 }
+
+$backHref = $sessionId ? 'game.php?id=' . $sessionId : 'index.php';
+$rollCount = $stats ? $stats['total'] : 0;
+
+Template::pageHead('Statistics');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Rolbal - Statistics</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/styles.css?v=3">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="<?= $sessionId ? 'game.php?id=' . $sessionId : 'index.php' ?>" class="back-btn">&larr;</a>
-            <h1 class="app-title">Statistics</h1>
-            <span class="roll-count"><?= $stats ? $stats['total'] : 0 ?></span>
-        </header>
+        <?php Template::header('Statistics', $backHref, '<span class="roll-count">' . $rollCount . '</span>'); ?>
 
         <main class="main-content">
             <?php if (!$session): ?>
             <?php if (empty($sessions)): ?>
-            <div class="empty-state">
-                <p>No games recorded yet</p>
-                <a href="game.php" class="btn-primary">Start New Game</a>
-            </div>
+            <?php Template::emptyState('No games recorded yet', 'game.php', 'Start New Game'); ?>
             <?php else: ?>
             <h2 class="section-title">Select a Game</h2>
             <div class="session-list">

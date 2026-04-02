@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Club.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/constants.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $playerId = Auth::id();
@@ -30,34 +31,19 @@ $stats = Club::getStats($club['id']);
 $isMember = $playerId ? ClubMember::isMember($club['id'], $playerId) : false;
 $canManage = $playerId ? Club::canManage($club['id'], $playerId) : false;
 $userRole = $playerId ? ClubMember::getRole($club['id'], $playerId) : null;
+
+$rightHtml = $canManage
+    ? '<a href="manage.php?slug=' . htmlspecialchars($slug) . '" class="header-action">Manage</a>'
+    : '<span></span>';
+
+Template::pageHead($club['name'], [], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - <?= htmlspecialchars($club['name']) ?></title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php" class="back-btn">&larr;</a>
-            <h1 class="app-title">Club</h1>
-            <?php if ($canManage): ?>
-            <a href="manage.php?slug=<?= htmlspecialchars($slug) ?>" class="header-action">Manage</a>
-            <?php else: ?>
-            <span></span>
-            <?php endif; ?>
-        </header>
+        <?php Template::header('Club', 'index.php', $rightHtml); ?>
 
         <main class="main-content">
-            <?php if ($flash): ?>
-            <div class="flash flash-<?= $flash['type'] ?>"><?= htmlspecialchars($flash['message']) ?></div>
-            <?php endif; ?>
+            <?php Template::flash($flash); ?>
 
             <!-- Club Profile -->
             <div class="profile-card">

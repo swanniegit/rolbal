@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Club.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/GameMatch.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
 $playerId = Auth::id();
@@ -43,35 +44,19 @@ $isPaid = GameMatch::isPaidMember($playerId);
 $liveMatches = GameMatch::listByClub($clubId, 'live');
 $recentMatches = GameMatch::listByClub($clubId, 'completed', 10);
 $setupMatches = $canCreate ? GameMatch::listByClub($clubId, 'setup') : [];
+
+$rightHtml = $canCreate
+    ? '<a href="create.php?club=' . $clubId . '" class="header-action">+ New</a>'
+    : '<span></span>';
+
+Template::pageHead('Live Scores', ['../css/pages/match-index.css'], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - Live Scores</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/pages/match-index.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="../clubs/view.php?slug=<?= htmlspecialchars($club['slug']) ?>" class="back-btn">&larr;</a>
-            <h1 class="app-title">Live Scores</h1>
-            <?php if ($canCreate): ?>
-            <a href="create.php?club=<?= $clubId ?>" class="header-action">+ New</a>
-            <?php else: ?>
-            <span></span>
-            <?php endif; ?>
-        </header>
+        <?php Template::header('Live Scores', '../clubs/view.php?slug=' . htmlspecialchars($club['slug']), $rightHtml); ?>
 
         <main class="main-content">
-            <?php if ($flash): ?>
-            <div class="flash flash-<?= $flash['type'] ?>"><?= htmlspecialchars($flash['message']) ?></div>
-            <?php endif; ?>
+            <?php Template::flash($flash); ?>
 
             <!-- Quick Actions -->
             <div class="quick-actions">
@@ -163,7 +148,7 @@ $setupMatches = $canCreate ? GameMatch::listByClub($clubId, 'setup') : [];
                 <?php endforeach; ?>
             </div>
             <?php else: ?>
-            <div class="empty-state">No live matches right now</div>
+            <?php Template::emptyState('No live matches right now'); ?>
             <?php endif; ?>
 
             <!-- Recent Matches -->
@@ -191,7 +176,7 @@ $setupMatches = $canCreate ? GameMatch::listByClub($clubId, 'setup') : [];
                 <?php endforeach; ?>
             </div>
             <?php else: ?>
-            <div class="empty-state">No completed matches yet</div>
+            <?php Template::emptyState('No completed matches yet'); ?>
             <?php endif; ?>
         </main>
     </div>

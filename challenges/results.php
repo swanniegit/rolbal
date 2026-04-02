@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Challenge.php';
 require_once __DIR__ . '/../includes/ChallengeAttempt.php';
 require_once __DIR__ . '/../includes/constants.php';
+require_once __DIR__ . '/../includes/Template.php';
 
 // Require login
 if (!Auth::check()) {
@@ -54,25 +55,12 @@ foreach ($leaderboard as $index => $entry) {
 
 // Get previous attempts for this challenge
 $previousAttempts = ChallengeAttempt::forPlayerChallenge($playerId, $attempt['challenge_id'], 10);
+
+Template::pageHead('Results', ['../css/pages/challenge-results.css'], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <title>Results - Rolbal</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/pages/challenge-results.css">
-</head>
 <body>
     <div class="app-container">
-        <header class="app-header compact">
-            <a href="index.php" class="back-btn">&larr;</a>
-            <h1 class="app-title">Results</h1>
-            <span></span>
-        </header>
+        <?php Template::header('Results', 'index.php'); ?>
 
         <main class="main-content">
             <!-- Score Card -->
