@@ -3,7 +3,18 @@
  * API Response Helper - Centralized JSON response formatting
  */
 
+require_once __DIR__ . '/Auth.php';
+
 class ApiResponse {
+
+    // Common error messages
+    const ERR_LOGIN_REQUIRED = 'Login required';
+    const ERR_ACCESS_DENIED = 'Access denied';
+    const ERR_NOT_FOUND = 'Not found';
+    const ERR_INVALID_ACTION = 'Invalid action';
+    const ERR_METHOD_NOT_ALLOWED = 'Method not allowed';
+    const ERR_MISSING_FIELDS = 'Missing required fields';
+    const ERR_NOT_AUTHORIZED = 'Not authorized';
 
     public static function success(array $data = []): void {
         header('Content-Type: application/json');
@@ -18,19 +29,34 @@ class ApiResponse {
         exit;
     }
 
-    public static function notFound(string $message = 'Not found'): void {
+    public static function notFound(string $message = self::ERR_NOT_FOUND): void {
         self::error($message, 404);
     }
 
-    public static function unauthorized(string $message = 'Login required'): void {
+    public static function unauthorized(string $message = self::ERR_LOGIN_REQUIRED): void {
         self::error($message, 401);
     }
 
-    public static function forbidden(string $message = 'Access denied'): void {
+    public static function forbidden(string $message = self::ERR_ACCESS_DENIED): void {
         self::error($message, 403);
     }
 
     public static function methodNotAllowed(): void {
-        self::error('Method not allowed', 405);
+        self::error(self::ERR_METHOD_NOT_ALLOWED, 405);
+    }
+
+    public static function invalidAction(): void {
+        self::error(self::ERR_INVALID_ACTION);
+    }
+
+    /**
+     * Require authenticated user - returns player ID or sends 401 response
+     */
+    public static function requireAuth(): int {
+        $playerId = Auth::id();
+        if (!$playerId) {
+            self::unauthorized();
+        }
+        return $playerId;
     }
 }

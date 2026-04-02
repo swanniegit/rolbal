@@ -138,4 +138,16 @@ class ClubMember {
         $result = $stmt->fetch();
         return $result ?: null;
     }
+
+    /**
+     * Require club membership - returns true or sends forbidden response
+     * Use in API endpoints to enforce club access
+     */
+    public static function requireMembership(int $clubId, int $playerId): bool {
+        if (!self::isMember($clubId, $playerId)) {
+            require_once __DIR__ . '/ApiResponse.php';
+            ApiResponse::forbidden('Not a club member');
+        }
+        return true;
+    }
 }

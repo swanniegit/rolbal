@@ -181,7 +181,34 @@ try {
             }
 
             if (!isset($_FILES['icon']) || $_FILES['icon']['error'] !== UPLOAD_ERR_OK) {
-                throw new Exception('No file uploaded');
+                $uploadErrors = [
+                    UPLOAD_ERR_INI_SIZE => 'File exceeds server limit',
+                    UPLOAD_ERR_FORM_SIZE => 'File exceeds form limit',
+                    UPLOAD_ERR_PARTIAL => 'File only partially uploaded',
+                    UPLOAD_ERR_NO_FILE => 'No file uploaded',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Server configuration error',
+                    UPLOAD_ERR_CANT_WRITE => 'Failed to write file',
+                    UPLOAD_ERR_EXTENSION => 'Upload blocked by extension'
+                ];
+                $errorCode = $_FILES['icon']['error'] ?? UPLOAD_ERR_NO_FILE;
+                throw new Exception($uploadErrors[$errorCode] ?? 'Upload failed');
+            }
+
+            // Explicit validation with specific error messages
+            $file = $_FILES['icon'];
+            if ($file['size'] > Upload::MAX_SIZE) {
+                throw new Exception('File too large (max 2MB)');
+            }
+
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (!in_array($extension, Upload::ALLOWED_EXTENSIONS)) {
+                throw new Exception('Invalid file type. Allowed: ' . implode(', ', Upload::ALLOWED_EXTENSIONS));
+            }
+
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($file['tmp_name']);
+            if (!in_array($mimeType, Upload::ALLOWED_TYPES)) {
+                throw new Exception('Invalid image format');
             }
 
             $club = Club::find($clubId);
@@ -189,9 +216,9 @@ try {
                 Upload::deleteClubIcon($club['icon_filename']);
             }
 
-            $iconFilename = Upload::clubIcon($_FILES['icon']);
+            $iconFilename = Upload::clubIcon($file);
             if (!$iconFilename) {
-                throw new Exception('Invalid image file');
+                throw new Exception('Failed to process image');
             }
 
             Club::update($clubId, ['icon_filename' => $iconFilename]);

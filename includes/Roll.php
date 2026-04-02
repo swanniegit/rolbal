@@ -40,6 +40,21 @@ class Roll {
         return $stmt->execute(['id' => $id]);
     }
 
+    /**
+     * Undo (delete) the last roll in a session
+     */
+    public static function undoLast(int $sessionId): bool {
+        $db = Database::getInstance();
+        $stmt = $db->prepare('
+            DELETE FROM rolls
+            WHERE session_id = :session_id
+            ORDER BY created_at DESC
+            LIMIT 1
+        ');
+        $stmt->execute(['session_id' => $sessionId]);
+        return $stmt->rowCount() > 0;
+    }
+
     public static function stats(int $sessionId): array {
         $db = Database::getInstance();
 

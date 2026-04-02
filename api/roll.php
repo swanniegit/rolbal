@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../includes/Roll.php';
+require_once __DIR__ . '/../includes/RollValidator.php';
 require_once __DIR__ . '/../includes/ApiResponse.php';
 
 try {
@@ -18,13 +19,8 @@ try {
             throw new Exception('Session ID required');
         }
 
-        if (!in_array($endLength, [9, 10, 11])) {
-            throw new Exception('Invalid end length');
-        }
-
-        if (!in_array($result, [1, 2, 3, 4, 5, 6, 7, 8, 12, 20, 21, 22, 23])) {
-            throw new Exception('Invalid result');
-        }
+        RollValidator::validateEndLength($endLength);
+        RollValidator::validateResult($result);
 
         $id = Roll::create($sessionId, $endNumber, $endLength, $result, $toucher);
 
@@ -45,14 +41,7 @@ try {
         $undo = isset($_GET['undo']);
 
         if ($undo && $sessionId) {
-            $db = Database::getInstance();
-            $stmt = $db->prepare('
-                DELETE FROM rolls
-                WHERE session_id = :session_id
-                ORDER BY created_at DESC
-                LIMIT 1
-            ');
-            $stmt->execute(['session_id' => $sessionId]);
+            Roll::undoLast($sessionId);
             ApiResponse::success();
         } else {
             $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
