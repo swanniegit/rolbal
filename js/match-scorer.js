@@ -43,32 +43,24 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.addEventListener('click', async () => {
             if (!selectedTeam || !selectedShots) return;
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
+            UI.setButtonLoading(submitBtn, true);
 
-            try {
-                const formData = new FormData();
-                formData.append('action', 'end');
-                formData.append('match_id', MATCH_ID);
-                formData.append('end_number', currentEnd);
-                formData.append('scoring_team', selectedTeam);
-                formData.append('shots', selectedShots);
+            const data = await API.post('../api/match.php', {
+                action: 'end',
+                match_id: MATCH_ID,
+                end_number: currentEnd,
+                scoring_team: selectedTeam,
+                shots: selectedShots
+            });
 
-                const res = await fetch('../api/match.php', { method: 'POST', body: formData });
-                const data = await res.json();
-
-                if (data.success !== false) {
-                    updateScoreboard(data);
-                    clearSelection();
-                } else {
-                    alert(data.error || 'Failed to record end');
-                }
-            } catch (err) {
-                alert('Network error');
+            if (data.success !== false) {
+                updateScoreboard(data);
+                clearSelection();
+            } else {
+                UI.showFlash('error', data.error || 'Failed to record end');
             }
 
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit End';
+            UI.setButtonLoading(submitBtn, false, 'Submit End');
             updateSubmitBtn();
         });
     }
@@ -76,26 +68,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Undo
     if (undoBtn) {
         undoBtn.addEventListener('click', async () => {
-            if (!confirm('Undo last end?')) return;
+            if (!UI.confirm('Undo last end?')) return;
 
             undoBtn.disabled = true;
 
-            try {
-                const formData = new FormData();
-                formData.append('action', 'undo');
-                formData.append('match_id', MATCH_ID);
+            const data = await API.post('../api/match.php', {
+                action: 'undo',
+                match_id: MATCH_ID
+            });
 
-                const res = await fetch('../api/match.php', { method: 'POST', body: formData });
-                const data = await res.json();
-
-                if (data.success !== false) {
-                    updateScoreboard(data);
-                    clearSelection();
-                } else {
-                    alert(data.error || 'Nothing to undo');
-                }
-            } catch (err) {
-                alert('Network error');
+            if (data.success !== false) {
+                updateScoreboard(data);
+                clearSelection();
+            } else {
+                UI.showFlash('error', data.error || 'Nothing to undo');
             }
 
             undoBtn.disabled = false;
@@ -105,28 +91,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start match
     if (startBtn) {
         startBtn.addEventListener('click', async () => {
-            startBtn.disabled = true;
-            startBtn.textContent = 'Starting...';
+            UI.setButtonLoading(startBtn, true);
 
-            try {
-                const formData = new FormData();
-                formData.append('action', 'start');
-                formData.append('match_id', MATCH_ID);
+            const data = await API.post('../api/match.php', {
+                action: 'start',
+                match_id: MATCH_ID
+            });
 
-                const res = await fetch('../api/match.php', { method: 'POST', body: formData });
-                const data = await res.json();
-
-                if (data.success !== false) {
-                    location.reload();
-                } else {
-                    alert(data.error || 'Failed to start match');
-                    startBtn.disabled = false;
-                    startBtn.textContent = 'Start Match';
-                }
-            } catch (err) {
-                alert('Network error');
-                startBtn.disabled = false;
-                startBtn.textContent = 'Start Match';
+            if (data.success !== false) {
+                UI.reload();
+            } else {
+                UI.showFlash('error', data.error || 'Failed to start match');
+                UI.setButtonLoading(startBtn, false, 'Start Match');
             }
         });
     }
@@ -134,30 +110,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Complete match
     if (completeBtn) {
         completeBtn.addEventListener('click', async () => {
-            if (!confirm('End this match? This cannot be undone.')) return;
+            if (!UI.confirm('End this match? This cannot be undone.')) return;
 
-            completeBtn.disabled = true;
-            completeBtn.textContent = 'Ending...';
+            UI.setButtonLoading(completeBtn, true);
 
-            try {
-                const formData = new FormData();
-                formData.append('action', 'complete');
-                formData.append('match_id', MATCH_ID);
+            const data = await API.post('../api/match.php', {
+                action: 'complete',
+                match_id: MATCH_ID
+            });
 
-                const res = await fetch('../api/match.php', { method: 'POST', body: formData });
-                const data = await res.json();
-
-                if (data.success !== false) {
-                    window.location.href = 'view.php?id=' + MATCH_ID;
-                } else {
-                    alert(data.error || 'Failed to end match');
-                    completeBtn.disabled = false;
-                    completeBtn.textContent = 'End Match';
-                }
-            } catch (err) {
-                alert('Network error');
-                completeBtn.disabled = false;
-                completeBtn.textContent = 'End Match';
+            if (data.success !== false) {
+                UI.redirect('view.php?id=' + MATCH_ID);
+            } else {
+                UI.showFlash('error', data.error || 'Failed to end match');
+                UI.setButtonLoading(completeBtn, false, 'End Match');
             }
         });
     }
@@ -165,26 +131,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Delete match
     if (deleteBtn) {
         deleteBtn.addEventListener('click', async () => {
-            if (!confirm('Delete this match? This cannot be undone.')) return;
+            if (!UI.confirm('Delete this match? This cannot be undone.')) return;
 
-            deleteBtn.disabled = true;
-            deleteBtn.textContent = 'Deleting...';
+            UI.setButtonLoading(deleteBtn, true);
 
-            try {
-                const res = await fetch('../api/match.php?id=' + MATCH_ID, { method: 'DELETE' });
-                const data = await res.json();
+            const data = await API.delete('../api/match.php?id=' + MATCH_ID);
 
-                if (data.success !== false) {
-                    window.location.href = 'index.php?club=' + CLUB_ID;
-                } else {
-                    alert(data.error || 'Failed to delete match');
-                    deleteBtn.disabled = false;
-                    deleteBtn.textContent = 'Delete Match';
-                }
-            } catch (err) {
-                alert('Network error');
-                deleteBtn.disabled = false;
-                deleteBtn.textContent = 'Delete Match';
+            if (data.success !== false) {
+                UI.redirect('index.php?club=' + CLUB_ID);
+            } else {
+                UI.showFlash('error', data.error || 'Failed to delete match');
+                UI.setButtonLoading(deleteBtn, false, 'Delete Match');
             }
         });
     }

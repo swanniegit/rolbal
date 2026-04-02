@@ -19,22 +19,13 @@ function initStartForm() {
         e.preventDefault();
 
         const formData = new FormData(form);
+        const json = await API.post('../api/challenge.php', formData);
 
-        try {
-            const res = await fetch('../api/challenge.php', {
-                method: 'POST',
-                body: formData
-            });
-            const json = await res.json();
-
-            if (json.success) {
-                // Reload page with attempt ID
-                window.location.href = `play.php?id=${formData.get('challenge_id')}&attempt=${json.attempt_id}`;
-            } else {
-                alert(json.error || 'Failed to start challenge');
-            }
-        } catch (err) {
-            alert('Error: ' + err.message);
+        if (json.success) {
+            // Reload page with attempt ID
+            UI.redirect(`play.php?id=${formData.get('challenge_id')}&attempt=${json.attempt_id}`);
+        } else {
+            UI.showFlash('error', json.error || 'Failed to start challenge');
         }
     });
 }
@@ -134,50 +125,40 @@ function initChallengeGame(attemptId) {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('action', 'roll');
-        formData.append('attempt_id', attemptId);
-        formData.append('end_length', pos.sequence.end_length);
-        formData.append('delivery', pos.sequence.delivery);
-        formData.append('result', result);
-        formData.append('toucher', toucher);
+        const json = await API.post('../api/challenge.php', {
+            action: 'roll',
+            attempt_id: attemptId,
+            end_length: pos.sequence.end_length,
+            delivery: pos.sequence.delivery,
+            result: result,
+            toucher: toucher
+        });
 
-        try {
-            const res = await fetch('../api/challenge.php', {
-                method: 'POST',
-                body: formData
-            });
-            const json = await res.json();
+        if (json.success) {
+            // Update state
+            rollCount = json.progress.roll_count;
+            totalScore = json.progress.total_score;
 
-            if (json.success) {
-                // Update state
-                rollCount = json.progress.roll_count;
-                totalScore = json.progress.total_score;
+            // Show score animation
+            showScorePopup(json.roll.score);
 
-                // Show score animation
-                showScorePopup(json.roll.score);
+            // Flash success
+            UI.flashSuccess();
 
-                // Flash success
-                document.body.classList.add('flash-success');
-                setTimeout(() => document.body.classList.remove('flash-success'), 300);
+            // Reset toucher
+            toucher = 0;
+            toucherBtn.classList.remove('active');
 
-                // Reset toucher
-                toucher = 0;
-                toucherBtn.classList.remove('active');
-
-                // Check if complete
-                if (json.progress.is_complete) {
-                    window.location.href = `results.php?attempt=${attemptId}`;
-                    return;
-                }
-
-                // Update UI
-                updateUI();
-            } else {
-                alert(json.error || 'Failed to save roll');
+            // Check if complete
+            if (json.progress.is_complete) {
+                UI.redirect(`results.php?attempt=${attemptId}`);
+                return;
             }
-        } catch (err) {
-            alert('Error: ' + err.message);
+
+            // Update UI
+            updateUI();
+        } else {
+            UI.showFlash('error', json.error || 'Failed to save roll');
         }
     }
 
@@ -185,28 +166,21 @@ function initChallengeGame(attemptId) {
     async function undoLastRoll() {
         if (rollCount === 0) return;
 
-        try {
-            const res = await fetch(`../api/challenge.php?attempt_id=${attemptId}&undo=1`, {
-                method: 'DELETE'
-            });
-            const json = await res.json();
+        const json = await API.delete(`../api/challenge.php?attempt_id=${attemptId}&undo=1`);
 
-            if (json.success) {
-                rollCount = json.progress.roll_count;
-                totalScore = json.progress.total_score;
-                updateUI();
-            } else {
-                alert(json.error || 'Cannot undo');
-            }
-        } catch (err) {
-            alert('Error: ' + err.message);
+        if (json.success) {
+            rollCount = json.progress.roll_count;
+            totalScore = json.progress.total_score;
+            updateUI();
+        } else {
+            UI.showFlash('error', json.error || 'Cannot undo');
         }
     }
 
     // Quit challenge
     function quitChallenge() {
-        if (confirm('Are you sure you want to quit this challenge? Your progress will be saved.')) {
-            window.location.href = 'index.php';
+        if (UI.confirm('Are you sure you want to quit this challenge? Your progress will be saved.')) {
+            UI.redirect('index.php');
         }
     }
 

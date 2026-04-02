@@ -16,20 +16,15 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.set('is_public', '0');
         }
 
-        try {
-            const res = await fetch('../api/club.php', { method: 'POST', body: formData });
-            const data = await res.json();
+        const data = await API.post('../api/club.php', formData);
 
-            if (data.success) {
-                showMessage('success', 'Club updated successfully');
-                if (data.club.slug !== clubSlug) {
-                    window.location.href = 'manage.php?slug=' + data.club.slug;
-                }
-            } else {
-                showMessage('error', data.error || 'Update failed');
+        if (data.success) {
+            UI.showFlash('success', 'Club updated successfully');
+            if (data.club.slug !== clubSlug) {
+                UI.redirect('manage.php?slug=' + data.club.slug);
             }
-        } catch (err) {
-            showMessage('error', 'Network error');
+        } else {
+            UI.showFlash('error', data.error || 'Update failed');
         }
     });
 
@@ -39,54 +34,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const fileInput = document.getElementById('iconFile');
         if (!fileInput.files[0]) {
-            showMessage('error', 'Please select an image');
+            UI.showFlash('error', 'Please select an image');
             return;
         }
 
         const formData = new FormData(this);
         const btn = document.getElementById('uploadIconBtn');
-        btn.disabled = true;
-        btn.textContent = 'Uploading...';
+        UI.setButtonLoading(btn, true);
 
-        try {
-            const res = await fetch('../api/club.php', { method: 'POST', body: formData });
-            const data = await res.json();
+        const data = await API.post('../api/club.php', formData);
 
-            if (data.success) {
-                showMessage('success', 'Icon updated');
-                location.reload();
-            } else {
-                showMessage('error', data.error || 'Upload failed');
-            }
-        } catch (err) {
-            showMessage('error', 'Network error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Upload Icon';
+        if (data.success) {
+            UI.showFlash('success', 'Icon updated');
+            UI.reload();
+        } else {
+            UI.showFlash('error', data.error || 'Upload failed');
         }
+
+        UI.setButtonLoading(btn, false, 'Upload Icon');
     });
 
     // Remove icon
     const removeIconBtn = document.getElementById('removeIconBtn');
     if (removeIconBtn) {
         removeIconBtn.addEventListener('click', async function() {
-            if (!confirm('Remove club icon?')) return;
+            if (!UI.confirm('Remove club icon?')) return;
 
-            const formData = new FormData();
-            formData.append('action', 'remove_icon');
-            formData.append('club_id', clubId);
+            const data = await API.post('../api/club.php', {
+                action: 'remove_icon',
+                club_id: clubId
+            });
 
-            try {
-                const res = await fetch('../api/club.php', { method: 'POST', body: formData });
-                const data = await res.json();
-
-                if (data.success) {
-                    location.reload();
-                } else {
-                    showMessage('error', data.error || 'Failed to remove icon');
-                }
-            } catch (err) {
-                showMessage('error', 'Network error');
+            if (data.success) {
+                UI.reload();
+            } else {
+                UI.showFlash('error', data.error || 'Failed to remove icon');
             }
         });
     }
@@ -97,24 +79,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const memberId = this.dataset.memberId;
             const role = this.value;
 
-            const formData = new FormData();
-            formData.append('action', 'update_member_role');
-            formData.append('club_id', clubId);
-            formData.append('member_id', memberId);
-            formData.append('role', role);
+            const data = await API.post('../api/club.php', {
+                action: 'update_member_role',
+                club_id: clubId,
+                member_id: memberId,
+                role: role
+            });
 
-            try {
-                const res = await fetch('../api/club.php', { method: 'POST', body: formData });
-                const data = await res.json();
-
-                if (data.success) {
-                    showMessage('success', 'Role updated');
-                } else {
-                    showMessage('error', data.error || 'Failed to update role');
-                    location.reload();
-                }
-            } catch (err) {
-                showMessage('error', 'Network error');
+            if (data.success) {
+                UI.showFlash('success', 'Role updated');
+            } else {
+                UI.showFlash('error', data.error || 'Failed to update role');
+                UI.reload();
             }
         });
     });
@@ -122,28 +98,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Remove member
     document.querySelectorAll('.remove-member').forEach(btn => {
         btn.addEventListener('click', async function() {
-            if (!confirm('Remove this member from the club?')) return;
+            if (!UI.confirm('Remove this member from the club?')) return;
 
             const memberId = this.dataset.memberId;
             const memberItem = this.closest('.manage-member-item');
 
-            const formData = new FormData();
-            formData.append('action', 'remove_member');
-            formData.append('club_id', clubId);
-            formData.append('member_id', memberId);
+            const data = await API.post('../api/club.php', {
+                action: 'remove_member',
+                club_id: clubId,
+                member_id: memberId
+            });
 
-            try {
-                const res = await fetch('../api/club.php', { method: 'POST', body: formData });
-                const data = await res.json();
-
-                if (data.success) {
-                    memberItem.remove();
-                    showMessage('success', 'Member removed');
-                } else {
-                    showMessage('error', data.error || 'Failed to remove member');
-                }
-            } catch (err) {
-                showMessage('error', 'Network error');
+            if (data.success) {
+                UI.removeElement(memberItem);
+                UI.showFlash('success', 'Member removed');
+            } else {
+                UI.showFlash('error', data.error || 'Failed to remove member');
             }
         });
     });
@@ -152,42 +122,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const deleteBtn = document.getElementById('deleteClubBtn');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', async function() {
-            const confirmation = prompt(`Type "${clubName}" to confirm deletion:`);
+            if (!UI.confirmDelete(clubName)) return;
 
-            if (confirmation !== clubName) {
-                if (confirmation !== null) {
-                    showMessage('error', 'Club name did not match');
-                }
-                return;
-            }
+            UI.setButtonLoading(this, true);
 
-            this.disabled = true;
-            this.textContent = 'Deleting...';
+            const data = await API.delete(`../api/club.php?id=${clubId}`);
 
-            try {
-                const res = await fetch(`../api/club.php?id=${clubId}`, { method: 'DELETE' });
-                const data = await res.json();
-
-                if (data.success) {
-                    window.location.href = 'index.php';
-                } else {
-                    showMessage('error', data.error || 'Failed to delete club');
-                    this.disabled = false;
-                    this.textContent = 'Delete Club';
-                }
-            } catch (err) {
-                showMessage('error', 'Network error');
-                this.disabled = false;
-                this.textContent = 'Delete Club';
+            if (data.success) {
+                UI.redirect('index.php');
+            } else {
+                UI.showFlash('error', data.error || 'Failed to delete club');
+                UI.setButtonLoading(this, false, 'Delete Club');
             }
         });
-    }
-
-    function showMessage(type, message) {
-        const msgDiv = document.getElementById('formMessage');
-        msgDiv.textContent = message;
-        msgDiv.className = 'flash flash-' + type;
-        msgDiv.classList.remove('hidden');
-        setTimeout(() => msgDiv.classList.add('hidden'), 3000);
     }
 });

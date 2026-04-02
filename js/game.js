@@ -70,25 +70,17 @@ function initSessionForm() {
 
         const data = new FormData(form);
 
-        try {
-            const res = await fetch('api/session.php', {
-                method: 'POST',
-                body: data
-            });
-            const json = await res.json();
+        const json = await API.post('api/session.php', data);
 
-            if (json.success) {
-                // Increment free games counter for anonymous users
-                const isLoggedIn = document.getElementById('isLoggedIn')?.value === '1';
-                if (!isLoggedIn) {
-                    incrementFreeGamesCounter();
-                }
-                window.location.href = `game.php?id=${json.id}`;
-            } else {
-                alert(json.error || 'Failed to create session');
+        if (json.success) {
+            // Increment free games counter for anonymous users
+            const isLoggedIn = document.getElementById('isLoggedIn')?.value === '1';
+            if (!isLoggedIn) {
+                incrementFreeGamesCounter();
             }
-        } catch (err) {
-            alert('Error: ' + err.message);
+            UI.redirect(`game.php?id=${json.id}`);
+        } else {
+            UI.showFlash('error', json.error || 'Failed to create session');
         }
     });
 }
@@ -144,60 +136,50 @@ function initRollRecording(sessionId) {
     async function saveRoll(result) {
         const currentEnd = Math.floor(totalRolls / bowlsPerEnd) + 1;
 
-        const data = new FormData();
-        data.append('session_id', sessionId);
-        data.append('end_number', currentEnd);
-        data.append('end_length', currentEndLength);
-        data.append('result', result);
-        data.append('toucher', toucher);
+        const json = await API.post('api/roll.php', {
+            session_id: sessionId,
+            end_number: currentEnd,
+            end_length: currentEndLength,
+            result: result,
+            toucher: toucher
+        });
 
-        try {
-            const res = await fetch('api/roll.php', {
-                method: 'POST',
-                body: data
-            });
-            const json = await res.json();
+        if (json.success) {
+            totalRolls++;
 
-            if (json.success) {
-                totalRolls++;
+            // Update UI
+            document.getElementById('rollCount').textContent = totalRolls;
+            document.getElementById('undoBtn').disabled = false;
 
-                // Update UI
-                document.getElementById('rollCount').textContent = totalRolls;
-                document.getElementById('undoBtn').disabled = false;
+            // Update progress
+            updateProgress();
 
-                // Update progress
-                updateProgress();
+            // Flash success
+            UI.flashSuccess();
 
-                // Flash success
-                document.body.classList.add('flash-success');
-                setTimeout(() => document.body.classList.remove('flash-success'), 300);
+            // Reset toucher
+            toucher = 0;
+            toucherBtn?.classList.remove('active');
 
-                // Reset toucher
-                toucher = 0;
-                toucherBtn?.classList.remove('active');
+            // Check if end complete or game complete
+            const totalBowls = totalEnds * bowlsPerEnd;
 
-                // Check if end complete or game complete
-                const totalBowls = totalEnds * bowlsPerEnd;
-
-                if (totalRolls >= totalBowls) {
-                    // Game complete - reload to show stats link
-                    window.location.reload();
-                } else if (totalRolls % bowlsPerEnd === 0) {
-                    // End complete, show end length selection
-                    currentEndLength = null;
-                    stepResult.classList.add('hidden');
-                    stepEndLength.classList.remove('hidden');
-                    stepEndLength.querySelector('h2').textContent = `End ${Math.floor(totalRolls / bowlsPerEnd) + 1} - Length`;
-                    stepEndLength.querySelectorAll('.btn-choice').forEach(b => b.classList.remove('selected'));
-                } else {
-                    // Next bowl in same end
-                    updateBowlHeader();
-                }
+            if (totalRolls >= totalBowls) {
+                // Game complete - reload to show stats link
+                UI.reload();
+            } else if (totalRolls % bowlsPerEnd === 0) {
+                // End complete, show end length selection
+                currentEndLength = null;
+                stepResult.classList.add('hidden');
+                stepEndLength.classList.remove('hidden');
+                stepEndLength.querySelector('h2').textContent = `End ${Math.floor(totalRolls / bowlsPerEnd) + 1} - Length`;
+                stepEndLength.querySelectorAll('.btn-choice').forEach(b => b.classList.remove('selected'));
             } else {
-                alert(json.error || 'Failed to save roll');
+                // Next bowl in same end
+                updateBowlHeader();
             }
-        } catch (err) {
-            alert('Error: ' + err.message);
+        } else {
+            UI.showFlash('error', json.error || 'Failed to save roll');
         }
     }
 
@@ -213,18 +195,13 @@ function initRollRecording(sessionId) {
     }
 
     async function undoLastRoll() {
-        try {
-            const res = await fetch(`api/roll.php?session_id=${sessionId}&undo=1`, {
-                method: 'DELETE'
-            });
-            const json = await res.json();
+        const json = await API.delete(`api/roll.php?session_id=${sessionId}&undo=1`);
 
-            if (json.success) {
-                // Reload to recalculate state
-                window.location.reload();
-            }
-        } catch (err) {
-            alert('Error: ' + err.message);
+        if (json.success) {
+            // Reload to recalculate state
+            UI.reload();
+        } else {
+            UI.showFlash('error', json.error || 'Failed to undo');
         }
     }
 }

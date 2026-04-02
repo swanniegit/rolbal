@@ -89,6 +89,8 @@ Template::pageHead('Register');
         </main>
     </div>
 
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
     <script src="js/auth.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {

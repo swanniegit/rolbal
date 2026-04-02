@@ -156,6 +156,8 @@ Template::pageHead('Manage ' . $club['name'], [], '#2d5016', '../');
     window.CLUB_SLUG = '<?= htmlspecialchars($club['slug']) ?>';
     window.CLUB_NAME = '<?= addslashes($club['name']) ?>';
     </script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui.js"></script>
     <script src="../js/club.js"></script>
     <script src="../js/club-manage.js"></script>
 </body>

@@ -153,6 +153,8 @@ $targetScore = $match['target_score'] ?? $match['total_ends'] ?? 21;
     const TOTAL_ENDS = <?= $targetScore ?>;
     let currentEnd = <?= $match['current_end'] ?>;
     </script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui.js"></script>
     <script src="../js/match-scorer.js"></script>
 </body>
 </html>

@@ -196,6 +196,8 @@ Template::pageHead($challenge['name'], ['../css/pages/challenge-play.css'], '#2d
         </main>
     </div>
 
+    <script src="../js/api.js"></script>
+    <script src="../js/ui.js"></script>
     <script src="../js/challenge.js"></script>
 </body>
 </html>

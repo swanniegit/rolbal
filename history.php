@@ -80,6 +80,8 @@ Template::pageHead('History');
         </main>
     </div>
 
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
     <script src="js/session.js"></script>
 </body>
 </html>

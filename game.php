@@ -231,6 +231,8 @@ if ($sessionId) {
         <?php endif; ?>
     </div>
 
-    <script src="js/game.js?v=2"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js?v=3"></script>
 </body>
 </html>
