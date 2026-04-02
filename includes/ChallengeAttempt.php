@@ -24,20 +24,30 @@ class ChallengeAttempt {
         $challenge = Challenge::findWithSequences($challengeId);
         $maxPossible = $challenge ? $challenge['max_possible_score'] : 0;
 
-        // Create a hidden session for storing rolls
-        $sessionId = self::createChallengeSession($playerId, $challenge);
+        // Use transaction to ensure session + attempt are created atomically
+        $db->beginTransaction();
+        try {
+            // Create a hidden session for storing rolls
+            $sessionId = self::createChallengeSession($playerId, $challenge);
 
-        $stmt = $db->prepare('
-            INSERT INTO challenge_attempts (challenge_id, player_id, session_id, max_possible_score)
-            VALUES (:challenge_id, :player_id, :session_id, :max_possible)
-        ');
-        $stmt->execute([
-            'challenge_id' => $challengeId,
-            'player_id' => $playerId,
-            'session_id' => $sessionId,
-            'max_possible' => $maxPossible
-        ]);
-        return (int) $db->lastInsertId();
+            $stmt = $db->prepare('
+                INSERT INTO challenge_attempts (challenge_id, player_id, session_id, max_possible_score)
+                VALUES (:challenge_id, :player_id, :session_id, :max_possible)
+            ');
+            $stmt->execute([
+                'challenge_id' => $challengeId,
+                'player_id' => $playerId,
+                'session_id' => $sessionId,
+                'max_possible' => $maxPossible
+            ]);
+            $attemptId = (int) $db->lastInsertId();
+
+            $db->commit();
+            return $attemptId;
+        } catch (Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
     }
 
     private static function createChallengeSession(int $playerId, array $challenge): int {

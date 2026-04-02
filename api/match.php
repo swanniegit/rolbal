@@ -3,6 +3,7 @@
  * Match API - Live Match Scoring System
  */
 
+require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/GameMatch.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/RollValidator.php';
@@ -120,25 +121,35 @@ try {
                 $targetScore = 21;
             }
 
-            $matchId = GameMatch::create($clubId, $playerId, $gameType, $bowlsPerPlayer, $scoringMode, $targetScore);
+            // Use transaction to ensure match + teams + players are created atomically
+            $db = Database::getInstance();
+            $db->beginTransaction();
+            try {
+                $matchId = GameMatch::create($clubId, $playerId, $gameType, $bowlsPerPlayer, $scoringMode, $targetScore);
 
-            $team1Name = trim($_POST['team1_name'] ?? 'Team 1');
-            $team2Name = trim($_POST['team2_name'] ?? 'Team 2');
+                $team1Name = trim($_POST['team1_name'] ?? 'Team 1');
+                $team2Name = trim($_POST['team2_name'] ?? 'Team 2');
 
-            $team1Id = GameMatch::createTeam($matchId, 1, $team1Name);
-            $team2Id = GameMatch::createTeam($matchId, 2, $team2Name);
+                $team1Id = GameMatch::createTeam($matchId, 1, $team1Name);
+                $team2Id = GameMatch::createTeam($matchId, 2, $team2Name);
 
-            $positions = $config['positions'];
-            foreach ($positions as $position) {
-                $t1PlayerName = trim($_POST["team1_{$position}"] ?? '');
-                $t2PlayerName = trim($_POST["team2_{$position}"] ?? '');
+                $positions = $config['positions'];
+                foreach ($positions as $position) {
+                    $t1PlayerName = trim($_POST["team1_{$position}"] ?? '');
+                    $t2PlayerName = trim($_POST["team2_{$position}"] ?? '');
 
-                if ($t1PlayerName) {
-                    GameMatch::addPlayer($team1Id, $position, $t1PlayerName);
+                    if ($t1PlayerName) {
+                        GameMatch::addPlayer($team1Id, $position, $t1PlayerName);
+                    }
+                    if ($t2PlayerName) {
+                        GameMatch::addPlayer($team2Id, $position, $t2PlayerName);
+                    }
                 }
-                if ($t2PlayerName) {
-                    GameMatch::addPlayer($team2Id, $position, $t2PlayerName);
-                }
+
+                $db->commit();
+            } catch (Exception $e) {
+                $db->rollBack();
+                throw $e;
             }
 
             ApiResponse::success(['match_id' => $matchId]);

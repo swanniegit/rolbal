@@ -5,6 +5,7 @@
 
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/Club.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/Upload.php';
@@ -101,8 +102,21 @@ try {
                 }
             }
 
-            $clubId = Club::create($name, $playerId, $description, $iconFilename);
-            ClubMember::add($clubId, $playerId, 'owner');
+            // Use transaction to ensure club + owner membership are created atomically
+            $db = Database::getInstance();
+            $db->beginTransaction();
+            try {
+                $clubId = Club::create($name, $playerId, $description, $iconFilename);
+                ClubMember::add($clubId, $playerId, 'owner');
+                $db->commit();
+            } catch (Exception $e) {
+                $db->rollBack();
+                // Clean up uploaded icon if club creation failed
+                if ($iconFilename) {
+                    Upload::deleteClubIcon($iconFilename);
+                }
+                throw $e;
+            }
 
             $club = Club::find($clubId);
             echo json_encode(['success' => true, 'club' => $club]);
