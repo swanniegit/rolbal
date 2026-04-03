@@ -87,6 +87,10 @@ Template::pageHead($club['name'], [], '#2d5016', '../');
                         <span class="action-icon">&#9679;</span>
                         <span>Live Scores</span>
                     </a>
+                    <a href="../competitions/index.php?club=<?= $club['id'] ?>" class="btn-quick-action">
+                        <span class="action-icon">&#127942;</span>
+                        <span>Competitions</span>
+                    </a>
                 </div>
                 <?php endif; ?>
 

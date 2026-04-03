@@ -72,7 +72,34 @@ class MatchScoring {
         ');
         $stmt->execute(['id' => $id]);
 
-        return $stmt->rowCount() > 0;
+        $success = $stmt->rowCount() > 0;
+
+        // Trigger competition fixture update if this match is linked to a competition
+        if ($success) {
+            self::notifyCompetitionFixture($id);
+        }
+
+        return $success;
+    }
+
+    /**
+     * Notify competition system when a match completes
+     */
+    private static function notifyCompetitionFixture(int $matchId): void {
+        // Only load competition classes if needed
+        $fixtureFile = __DIR__ . '/CompetitionFixture.php';
+        if (!file_exists($fixtureFile)) {
+            return;
+        }
+
+        require_once $fixtureFile;
+
+        try {
+            CompetitionFixture::onMatchComplete($matchId);
+        } catch (Exception $e) {
+            // Log but don't fail the match completion
+            error_log('Competition fixture update failed for match ' . $matchId . ': ' . $e->getMessage());
+        }
     }
 
     public static function getScores(int $id): ?array {

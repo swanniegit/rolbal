@@ -219,3 +219,14 @@ body {
     border-radius: 8px;
     font-weight: 600;
 }
+
+.competition-link {
+    display: block;
+    text-align: center;
+    padding: 0.5rem;
+    background: #e3f2fd;
+    color: #1565c0;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+}

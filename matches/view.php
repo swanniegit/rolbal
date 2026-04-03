@@ -6,6 +6,8 @@
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Club.php';
 require_once __DIR__ . '/../includes/GameMatch.php';
+require_once __DIR__ . '/../includes/CompetitionFixture.php';
+require_once __DIR__ . '/../includes/Competition.php';
 require_once __DIR__ . '/../includes/Template.php';
 
 $isLoggedIn = Auth::check();
@@ -40,6 +42,13 @@ if (!$match) {
 
 $club = Club::find($match['club_id']);
 $canScore = GameMatch::canScore($playerId, $matchId);
+
+// Check if this match is part of a competition
+$competitionFixture = CompetitionFixture::findByMatch($matchId);
+$competition = null;
+if ($competitionFixture) {
+    $competition = Competition::find($competitionFixture['competition_id']);
+}
 
 // Build running totals
 $t1Shots = [];
@@ -112,6 +121,11 @@ $scoringMode = $match['scoring_mode'] ?? 'ends';
                 End <?= $match['current_end'] ?> of <?= $totalEnds ?>
             <?php endif; ?>
         </div>
+        <?php if ($competition): ?>
+        <a href="../competitions/view.php?id=<?= $competition['id'] ?>" class="competition-link">
+            <?= htmlspecialchars($competition['name']) ?> - <?= CompetitionFixture::getStageName($competitionFixture['stage']) ?>
+        </a>
+        <?php endif; ?>
     </div>
 
     <!-- Traditional Scoreboard -->
