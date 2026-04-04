@@ -6,6 +6,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Rolbal is a mobile-first PWA for tracking lawn bowls practice sessions. Players record roll positions on a visual grid and analyze performance statistics over time.
 
+## Production Deployment (PSCP)
+
+**SSH Details:**
+- Host: www451.jnb1.host-h.net
+- Port: 2222
+- Username: bowlsjgeez
+- Password: 6917J489e4Dg51
+- Remote path: public_html/
+
+**Deploy single file:**
+```bash
+cd /c/xampp/htdocs/rolbal && "/c/Program Files/PuTTY/pscp.exe" -P 2222 -pw "6917J489e4Dg51" -batch "path/to/file" "bowlsjgeez@www451.jnb1.host-h.net:public_html/path/to/file"
+```
+
+**Examples:**
+```bash
+# Deploy a CSS file
+"/c/Program Files/PuTTY/pscp.exe" -P 2222 -pw "6917J489e4Dg51" -batch "css/pages/challenge-play.css" "bowlsjgeez@www451.jnb1.host-h.net:public_html/css/pages/challenge-play.css"
+
+# Deploy a JS file
+"/c/Program Files/PuTTY/pscp.exe" -P 2222 -pw "6917J489e4Dg51" -batch "js/challenge.js" "bowlsjgeez@www451.jnb1.host-h.net:public_html/js/challenge.js"
+
+# Deploy a directory (use -r flag)
+"/c/Program Files/PuTTY/pscp.exe" -r -P 2222 -pw "6917J489e4Dg51" -batch "css/" "bowlsjgeez@www451.jnb1.host-h.net:public_html/css/"
+```
+
+**Note:** The `-batch` flag is required to skip host key confirmation prompts.
+
 ## Tech Stack
 
 - **Backend:** PHP 8+ (no framework), PDO for database

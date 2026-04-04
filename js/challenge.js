@@ -39,6 +39,7 @@ function initChallengeGame(attemptId) {
     let rollCount = parseInt(document.getElementById('currentRollCount').value);
     let totalScore = parseInt(document.getElementById('currentTotalScore').value);
     let toucher = 0;
+    let lastSequenceIndex = -1;
 
     // UI Elements
     const toucherBtn = document.getElementById('toucherBtn');
@@ -77,6 +78,16 @@ function initChallengeGame(attemptId) {
     // Update UI to reflect current position
     function updateUI() {
         const pos = getCurrentPosition();
+
+        // Check if sequence changed - trigger glow effect
+        if (lastSequenceIndex !== -1 && pos.sequenceIndex !== lastSequenceIndex) {
+            const sequenceInfo = document.querySelector('.sequence-info');
+            sequenceInfo.classList.remove('glow');
+            // Force reflow to restart animation
+            void sequenceInfo.offsetWidth;
+            sequenceInfo.classList.add('glow');
+        }
+        lastSequenceIndex = pos.sequenceIndex;
 
         // Update sequence info
         document.getElementById('currentSeqNum').textContent = pos.sequenceIndex + 1;
