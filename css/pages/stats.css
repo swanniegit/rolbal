@@ -1,0 +1,214 @@
+/**
+ * Statistics Page Styles
+ */
+
+/* Session Info Header */
+.session-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Stats Summary Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.stat-card.highlight {
+    background: var(--primary);
+}
+
+.stat-card.highlight .stat-value,
+.stat-card.highlight .stat-label {
+    color: white;
+}
+
+.stat-card .stat-value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+.stat-card .stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+/* Stats Section */
+.stats-section {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.stats-section h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--bg);
+}
+
+/* Position Breakdown Table */
+.stats-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: 60px repeat(3, 1fr);
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.row-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.stats-cell {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+}
+
+.stats-cell.highlight {
+    background: rgba(76, 175, 80, 0.15);
+    border: 2px solid var(--primary);
+}
+
+.stats-cell .cell-count {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.stats-cell .cell-pct {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.125rem;
+}
+
+.stats-cell.highlight .cell-count {
+    color: var(--primary);
+}
+
+/* Bar Chart */
+.bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.bar-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.bar-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text);
+}
+
+.bar-track {
+    height: 24px;
+    background: var(--bg);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    border-radius: 12px;
+    transition: width 0.5s ease;
+    min-width: 4px;
+}
+
+.bar-value {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+    font-weight: 500;
+}
+
+/* Zone Analysis Grid */
+.zone-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.zone-card {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.zone-card .zone-name {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.zone-card .zone-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.zone-card .zone-pct {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Action Bar */
+.stats-section + .action-bar {
+    margin-top: 1.5rem;
+}

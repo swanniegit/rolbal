@@ -33,7 +33,7 @@ if ($sessionId) {
 $backHref = $sessionId ? 'game.php?id=' . $sessionId : 'index.php';
 $rollCount = $stats ? $stats['total'] : 0;
 
-Template::pageHead('Statistics');
+Template::pageHead('Statistics', ['css/pages/stats.css']);
 ?>
 <body>
     <div class="app-container">
