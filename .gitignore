@@ -1,5 +1,5 @@
-# Config with credentials
-includes/config.php
+# Environment file (contains secrets)
+.env
 
 # IDE
 .idea/
@@ -8,3 +8,6 @@ includes/config.php
 # OS
 .DS_Store
 Thumbs.db
+
+# Playwright
+.playwright-mcp/
