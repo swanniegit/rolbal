@@ -79,13 +79,9 @@ function initChallengeGame(attemptId) {
     function updateUI() {
         const pos = getCurrentPosition();
 
-        // Check if sequence changed - trigger glow effect
+        // Check if sequence changed - show modal dialog
         if (lastSequenceIndex !== -1 && pos.sequenceIndex !== lastSequenceIndex) {
-            const sequenceInfo = document.querySelector('.sequence-info');
-            sequenceInfo.classList.remove('glow');
-            // Force reflow to restart animation
-            void sequenceInfo.offsetWidth;
-            sequenceInfo.classList.add('glow');
+            showSequenceChangeModal(pos);
         }
         lastSequenceIndex = pos.sequenceIndex;
 
@@ -126,6 +122,54 @@ function initChallengeGame(attemptId) {
         scorePopup.textContent = `+${score}`;
         scorePopup.classList.add('show');
         setTimeout(() => scorePopup.classList.remove('show'), 600);
+    }
+
+    // Show sequence change modal
+    function showSequenceChangeModal(pos) {
+        const endLengthNames = { 9: 'Long End', 10: 'Middle End', 11: 'Short End' };
+        const deliveryNames = { 13: 'Backhand', 14: 'Forehand' };
+
+        const endLength = endLengthNames[pos.sequence.end_length] || '';
+        const delivery = deliveryNames[pos.sequence.delivery] || '';
+
+        // Create modal if it doesn't exist
+        let modal = document.getElementById('sequenceModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'sequenceModal';
+            modal.className = 'sequence-modal-overlay';
+            modal.innerHTML = `
+                <div class="sequence-modal">
+                    <h2>New Sequence</h2>
+                    <div class="sequence-modal-content">
+                        <div class="sequence-modal-number">Sequence <span id="modalSeqNum"></span></div>
+                        <div class="sequence-modal-details">
+                            <span class="sequence-modal-length" id="modalEndLength"></span>
+                            <span class="sequence-modal-delivery" id="modalDelivery"></span>
+                        </div>
+                        <div class="sequence-modal-bowls"><span id="modalBowlCount"></span> bowls</div>
+                    </div>
+                    <button class="btn btn-primary sequence-modal-btn" id="modalAcceptBtn">Ready</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('modalAcceptBtn').addEventListener('click', () => {
+                modal.classList.remove('show');
+            });
+        }
+
+        // Update modal content
+        document.getElementById('modalSeqNum').textContent = `${pos.sequenceIndex + 1}/${sequences.length}`;
+        document.getElementById('modalEndLength').textContent = endLength;
+        document.getElementById('modalEndLength').className = 'sequence-modal-length';
+        document.getElementById('modalDelivery').textContent = delivery;
+        document.getElementById('modalDelivery').className = 'sequence-modal-delivery ' +
+            (pos.sequence.delivery == 14 ? 'delivery-forehand' : 'delivery-backhand');
+        document.getElementById('modalBowlCount').textContent = pos.sequence.bowl_count;
+
+        // Show modal
+        modal.classList.add('show');
     }
 
     // Record a roll
