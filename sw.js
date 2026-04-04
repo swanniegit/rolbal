@@ -1,6 +1,6 @@
-// Rolbal Service Worker
+// BowlsTracker Service Worker
 
-const CACHE_NAME = 'rolbal-v2';
+const CACHE_NAME = 'bowlstracker-v1';
 const ASSETS = [
     './',
     './index.php',

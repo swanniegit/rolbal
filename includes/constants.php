@@ -1,6 +1,6 @@
 <?php
 /**
- * Rolbal Constants - Field Definitions
+ * BowlsTracker Constants - Field Definitions
  */
 
 // 15 - Hand

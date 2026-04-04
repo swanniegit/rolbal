@@ -62,7 +62,7 @@ $targetScore = $match['target_score'] ?? $match['total_ends'] ?? 21;
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#2d5016">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - Score Match</title>
+    <title>BowlsTracker - Score Match</title>
     <link rel="manifest" href="../manifest.json">
     <link rel="stylesheet" href="../css/pages/match-scorer.css">
 </head>

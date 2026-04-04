@@ -1,6 +1,6 @@
 <?php
 /**
- * Rolbal Configuration
+ * BowlsTracker Configuration
  * Loads settings from .env file with fallbacks for local development
  */
 

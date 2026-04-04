@@ -1,6 +1,6 @@
 <?php
 /**
- * Rolbal Configuration
+ * BowlsTracker Configuration
  * Copy this file to config.php and update credentials
  */
 
@@ -12,7 +12,7 @@ define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 // App
-define('APP_NAME', 'Rolbal');
+define('APP_NAME', 'BowlsTracker');
 define('APP_VERSION', '1.0.0');
 
 // Environment

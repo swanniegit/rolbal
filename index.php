@@ -9,12 +9,12 @@ $playerName = Auth::name();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#2d5016">
-    <meta name="description" content="Rolbal - Lawn Bowls Statistics Tracker">
+    <meta name="description" content="BowlsTracker - Lawn Bowls Statistics Tracker">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Rolbal">
+    <meta name="apple-mobile-web-app-title" content="BowlsTracker">
 
-    <title>Rolbal - Lawn Bowls Stats</title>
+    <title>BowlsTracker - Lawn Bowls Stats</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
@@ -36,7 +36,7 @@ $playerName = Auth::name();
             <div class="logo-container">
                 <img src="assets/logo.svg" alt="Yellow Archer" class="logo">
             </div>
-            <h1 class="app-title">Rolbal</h1>
+            <h1 class="app-title">BowlsTracker</h1>
             <p class="app-tagline">Lawn Bowls Statistics</p>
         </header>
 
@@ -72,7 +72,7 @@ $playerName = Auth::name();
         </main>
 
         <footer class="app-footer">
-            <p>Powered by <strong>Yellow Archer</strong></p>
+            <p>Powered by <a href="https://yellowarcher.co.za" target="_blank"><strong>Yellow Archer</strong></a></p>
         </footer>
     </div>
 

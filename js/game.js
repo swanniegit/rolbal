@@ -1,4 +1,4 @@
-// Rolbal Game Logic
+// BowlsTracker Game Logic
 
 // Track free games for anonymous users
 function incrementFreeGamesCounter() {

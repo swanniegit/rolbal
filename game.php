@@ -67,7 +67,7 @@ if ($sessionId) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#2d5016">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Rolbal - <?= $session ? 'Game' : 'New Game' ?></title>
+    <title>BowlsTracker - <?= $session ? 'Game' : 'New Game' ?></title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/styles.css?v=3">
 </head>

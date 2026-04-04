@@ -46,7 +46,7 @@ $liveMatches = GameMatch::getLiveMatchesForClub($clubId);
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Rolbal - Live Scoreboard</title>
+    <title>BowlsTracker - Live Scoreboard</title>
     <link rel="manifest" href="../manifest.json">
     <link rel="stylesheet" href="../css/pages/match-scoreboard.css">
 </head>

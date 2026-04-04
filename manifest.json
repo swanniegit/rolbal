@@ -1,6 +1,6 @@
 {
-    "name": "Rolbal - Lawn Bowls Statistics",
-    "short_name": "Rolbal",
+    "name": "BowlsTracker - Lawn Bowls Statistics",
+    "short_name": "BowlsTracker",
     "description": "Track your lawn bowls game statistics",
     "start_url": "/",
     "display": "standalone",

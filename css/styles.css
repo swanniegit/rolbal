@@ -1,4 +1,4 @@
-/* Mobile-first CSS for Rolbal PWA */
+/* Mobile-first CSS for BowlsTracker PWA */
 
 :root {
     --primary: #2d5016;
@@ -169,6 +169,15 @@ body {
     padding: 1.5rem 0;
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+.app-footer a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.app-footer a:hover {
+    text-decoration: underline;
 }
 
 .app-footer strong {

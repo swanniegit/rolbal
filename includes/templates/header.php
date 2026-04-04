@@ -8,7 +8,7 @@
  * @param bool $compact - Use compact header style (default: true)
  */
 
-$title = $title ?? 'Rolbal';
+$title = $title ?? 'BowlsTracker';
 $backHref = $backHref ?? '';
 $rightHtml = $rightHtml ?? '<span></span>';
 $compact = $compact ?? true;
