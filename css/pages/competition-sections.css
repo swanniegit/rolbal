@@ -1,0 +1,339 @@
+/**
+ * Competition Sections - Card-based results display
+ * Matches Edenvale Bowling Club layout style
+ */
+
+/* Competition Header */
+.competition-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.competition-header h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.draft { background: var(--bg-muted); }
+.status-badge.registration { background: #e3f2fd; color: #1565c0; }
+.status-badge.in_progress { background: #fff3e0; color: #e65100; }
+.status-badge.completed { background: #e8f5e9; color: #2e7d32; }
+
+/* Sections Container */
+.sections-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.section-block {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--border);
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--text-primary);
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary);
+}
+
+/* Team Cards Grid */
+.team-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+/* Individual Team Card */
+.team-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.team-card.winner {
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+}
+
+.team-card.runner-up {
+    border-color: #1565c0;
+    box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.2);
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--bg-muted);
+    border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    background: var(--surface);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.team-name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.position-badge {
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.team-card.winner .position-badge {
+    background: #2e7d32;
+}
+
+.team-card.runner-up .position-badge {
+    background: #1565c0;
+}
+
+/* Results Table */
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.results-table th,
+.results-table td {
+    padding: 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.results-table th {
+    background: #f5f5f5;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.results-table th:first-child,
+.results-table td.opponent {
+    text-align: left;
+    padding-left: 0.75rem;
+}
+
+.results-table td.opponent {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.results-table td.stat {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-weight: 500;
+}
+
+.results-table td.stat.positive {
+    color: #2e7d32;
+}
+
+.results-table td.stat.negative {
+    color: #c62828;
+}
+
+.results-table td.points {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.results-table td.no-matches {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 1rem;
+}
+
+/* Totals Row */
+.totals-row {
+    background: #fafafa;
+    font-weight: 600;
+}
+
+.totals-row td {
+    border-bottom: none;
+}
+
+.totals-row td:first-child {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Rank Badge */
+.rank-badge {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.team-card.winner .rank-badge {
+    background: #2e7d32;
+    color: white;
+}
+
+.team-card.runner-up .rank-badge {
+    background: #1565c0;
+    color: white;
+}
+
+/* Add padding at bottom for rank badge */
+.team-card.winner .results-table,
+.team-card.runner-up .results-table {
+    margin-bottom: 2rem;
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-muted);
+    border-radius: 8px;
+    font-size: 0.8rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid;
+}
+
+.legend-color.winner {
+    background: rgba(46, 125, 50, 0.2);
+    border-color: #2e7d32;
+}
+
+.legend-color.runner-up {
+    background: rgba(21, 101, 192, 0.2);
+    border-color: #1565c0;
+}
+
+/* Quick Navigation */
+.quick-nav {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.nav-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.nav-btn:hover {
+    background: var(--bg-muted);
+    border-color: var(--primary);
+}
+
+.nav-btn.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.nav-btn.primary:hover {
+    background: var(--primary-dark);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .team-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .competition-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .quick-nav {
+        flex-direction: column;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .quick-nav,
+    .legend {
+        display: none;
+    }
+
+    .section-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .team-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}

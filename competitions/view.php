@@ -108,6 +108,10 @@ Template::pageHead($competition['name'], [], '#2d5016', '../');
                 <?php endif; ?>
 
                 <?php if (in_array($competition['format'], ['round_robin', 'combined'])): ?>
+                <a href="sections.php?id=<?= $id ?>" class="quick-link">
+                    <span class="icon">&#128203;</span>
+                    <span>Sections</span>
+                </a>
                 <a href="standings.php?id=<?= $id ?>" class="quick-link">
                     <span class="icon">&#128202;</span>
                     <span>Standings</span>

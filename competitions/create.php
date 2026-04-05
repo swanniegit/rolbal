@@ -53,6 +53,7 @@ Template::pageHead('New Competition', [], '#2d5016', '../');
             <form id="createForm" class="form">
                 <input type="hidden" name="club_id" value="<?= $clubId ?>">
                 <input type="hidden" name="action" value="create">
+                <input type="hidden" name="csrf_token" value="<?= Auth::generateCsrfToken() ?>">
 
                 <div class="form-group">
                     <label for="name">Competition Name</label>
@@ -98,23 +99,54 @@ Template::pageHead('New Competition', [], '#2d5016', '../');
                     <input type="hidden" name="game_type" value="singles">
                 </div>
 
-                <!-- Round Robin / Combined Options -->
-                <div id="groupOptions" class="form-group" style="display: none;">
-                    <label for="group_count">Number of Groups</label>
-                    <select id="group_count" name="group_count">
-                        <option value="">No groups (single round robin)</option>
-                        <option value="2">2 Groups</option>
-                        <option value="4">4 Groups</option>
-                        <option value="8">8 Groups</option>
-                    </select>
+                <!-- Round Robin / Combined Section Options -->
+                <div id="sectionOptions" class="options-section" style="display: none;">
+                    <h3 class="options-title">Section Configuration</h3>
+
+                    <div class="form-group">
+                        <label for="group_count">Number of Sections</label>
+                        <select id="group_count" name="group_count">
+                            <option value="">No sections (single round robin)</option>
+                            <option value="2">2 Sections</option>
+                            <option value="4">4 Sections</option>
+                            <option value="6">6 Sections</option>
+                            <option value="7">7 Sections</option>
+                            <option value="8">8 Sections</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="teams_per_section">Teams per Section</label>
+                        <select id="teams_per_section" name="teams_per_section">
+                            <option value="3">3 Teams</option>
+                            <option value="4" selected>4 Teams</option>
+                            <option value="5">5 Teams</option>
+                            <option value="6">6 Teams</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rink_count">Available Rinks</label>
+                        <select id="rink_count" name="rink_count">
+                            <option value="4">4 Rinks</option>
+                            <option value="5">5 Rinks</option>
+                            <option value="6" selected>6 Rinks</option>
+                            <option value="7">7 Rinks</option>
+                            <option value="8">8 Rinks</option>
+                        </select>
+                        <span class="help-text">Used for scheduling concurrent matches</span>
+                    </div>
                 </div>
 
                 <div id="qualifierOptions" class="form-group" style="display: none;">
-                    <label for="knockout_qualifiers">Qualifiers per Group</label>
-                    <select id="knockout_qualifiers" name="knockout_qualifiers">
-                        <option value="2">Top 2</option>
+                    <label for="qualifiers_per_section">Knockout Qualifiers</label>
+                    <select id="qualifiers_per_section" name="qualifiers_per_section">
+                        <option value="1">Winner only (1 per section)</option>
+                        <option value="2" selected>Top 2 (Winner + Runner Up)</option>
+                        <option value="3">Top 3</option>
                         <option value="4">Top 4</option>
                     </select>
+                    <span class="help-text">How many teams per section advance to knockout</span>
                 </div>
 
                 <div class="form-group">
@@ -202,6 +234,26 @@ Template::pageHead('New Competition', [], '#2d5016', '../');
         font-size: 1rem;
         margin-top: 1rem;
     }
+    .options-section {
+        background: var(--bg-muted);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    .options-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0 0 1rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .help-text {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+    }
     </style>
 
     <script>
@@ -236,18 +288,18 @@ Template::pageHead('New Competition', [], '#2d5016', '../');
         });
 
         function updateFormatOptions(format) {
-            const groupOptions = document.getElementById('groupOptions');
+            const sectionOptions = document.getElementById('sectionOptions');
             const qualifierOptions = document.getElementById('qualifierOptions');
 
             if (format === 'round_robin') {
-                groupOptions.style.display = 'block';
+                sectionOptions.style.display = 'block';
                 qualifierOptions.style.display = 'none';
             } else if (format === 'combined') {
-                groupOptions.style.display = 'block';
+                sectionOptions.style.display = 'block';
                 qualifierOptions.style.display = 'block';
-                document.getElementById('group_count').value = '2';
+                document.getElementById('group_count').value = '4';
             } else {
-                groupOptions.style.display = 'none';
+                sectionOptions.style.display = 'none';
                 qualifierOptions.style.display = 'none';
             }
         }

@@ -88,10 +88,10 @@ class CompetitionFixture {
             INSERT INTO competition_fixtures (
                 competition_id, stage, round_number, bracket_position, group_id,
                 participant1_id, participant2_id, winner_from_fixture_1, winner_from_fixture_2,
-                scheduled_at, status
+                scheduled_at, rink_number, status
             ) VALUES (
                 :competition_id, :stage, :round_number, :bracket_position, :group_id,
-                :p1, :p2, :wf1, :wf2, :scheduled_at, :status
+                :p1, :p2, :wf1, :wf2, :scheduled_at, :rink_number, :status
             )
         ');
 
@@ -106,6 +106,7 @@ class CompetitionFixture {
             'wf1' => $data['winner_from_fixture_1'] ?? null,
             'wf2' => $data['winner_from_fixture_2'] ?? null,
             'scheduled_at' => $data['scheduled_at'] ?? null,
+            'rink_number' => $data['rink_number'] ?? null,
             'status' => $data['status'] ?? 'pending'
         ]);
 
@@ -115,7 +116,7 @@ class CompetitionFixture {
     public static function update(int $id, array $data): bool {
         $db = Database::getInstance();
 
-        $allowed = ['scheduled_at', 'status', 'participant1_id', 'participant2_id'];
+        $allowed = ['scheduled_at', 'status', 'participant1_id', 'participant2_id', 'rink_number'];
         $updates = [];
         $params = ['id' => $id];
 
@@ -133,6 +134,146 @@ class CompetitionFixture {
         $sql = 'UPDATE competition_fixtures SET ' . implode(', ', $updates) . ' WHERE id = :id';
         $stmt = $db->prepare($sql);
         return $stmt->execute($params);
+    }
+
+    /**
+     * Record detailed match score with For/Against shots
+     * Used for section-based round robin scoring
+     *
+     * @param int $fixtureId
+     * @param int $participant1For Shots scored by participant 1
+     * @param int $participant2For Shots scored by participant 2
+     * @return bool
+     */
+    public static function recordDetailedScore(int $fixtureId, int $participant1For, int $participant2For): bool {
+        $fixture = self::find($fixtureId);
+        if (!$fixture) {
+            return false;
+        }
+
+        require_once __DIR__ . '/Competition.php';
+
+        $db = Database::getInstance();
+
+        // Calculate points using Competition's point system
+        $drawAllowed = Competition::isDrawAllowed($fixture['game_type']);
+        $points1 = Competition::calculatePoints($participant1For, $participant2For, $drawAllowed);
+        $points2 = Competition::calculatePoints($participant2For, $participant1For, $drawAllowed);
+
+        // Determine winner (null for draw)
+        $winnerId = null;
+        if ($participant1For > $participant2For) {
+            $winnerId = $fixture['participant1_id'];
+        } elseif ($participant2For > $participant1For) {
+            $winnerId = $fixture['participant2_id'];
+        }
+
+        $stmt = $db->prepare('
+            UPDATE competition_fixtures
+            SET status = "completed",
+                winner_id = :winner_id,
+                score1 = :points1,
+                score2 = :points2,
+                participant1_for = :p1_for,
+                participant1_against = :p1_against,
+                participant2_for = :p2_for,
+                participant2_against = :p2_against
+            WHERE id = :id
+        ');
+
+        $result = $stmt->execute([
+            'id' => $fixtureId,
+            'winner_id' => $winnerId,
+            'points1' => $points1,
+            'points2' => $points2,
+            'p1_for' => $participant1For,
+            'p1_against' => $participant2For,
+            'p2_for' => $participant2For,
+            'p2_against' => $participant1For
+        ]);
+
+        if (!$result) {
+            return false;
+        }
+
+        // Update standings for group stage
+        if ($fixture['stage'] === 'group') {
+            require_once __DIR__ . '/CompetitionStandings.php';
+            CompetitionStandings::updateFromDetailedScore($fixtureId);
+        }
+
+        // Progress winner in knockout (if applicable)
+        if ($winnerId && in_array($fixture['stage'], ['play_in', 'round_of_64', 'round_of_32', 'round_of_16', 'quarter_final', 'semi_final'])) {
+            self::progressWinner($fixtureId, $winnerId);
+        }
+
+        // Check if competition is complete
+        self::checkCompetitionComplete($fixture['competition_id']);
+
+        return true;
+    }
+
+    /**
+     * Get detailed fixture result (for section card display)
+     */
+    public static function getDetailedResult(int $fixtureId): ?array {
+        $db = Database::getInstance();
+
+        $stmt = $db->prepare('
+            SELECT f.id, f.participant1_id, f.participant2_id,
+                   f.participant1_for, f.participant1_against,
+                   f.participant2_for, f.participant2_against,
+                   f.score1 as points1, f.score2 as points2,
+                   f.winner_id, f.status, f.rink_number
+            FROM competition_fixtures f
+            WHERE f.id = :id
+        ');
+        $stmt->execute(['id' => $fixtureId]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
+    /**
+     * Get all match results for a participant in a section (for card display)
+     * Returns results against each opponent with For/Against/Agg/Points
+     */
+    public static function getParticipantSectionResults(int $participantId, int $groupId): array {
+        $db = Database::getInstance();
+
+        $stmt = $db->prepare('
+            SELECT f.id, f.participant1_id, f.participant2_id,
+                   f.participant1_for, f.participant1_against,
+                   f.participant2_for, f.participant2_against,
+                   f.score1, f.score2, f.winner_id, f.status
+            FROM competition_fixtures f
+            WHERE f.group_id = :group_id
+            AND (f.participant1_id = :p1 OR f.participant2_id = :p2)
+            AND f.status IN ("completed", "walkover")
+            ORDER BY f.round_number
+        ');
+        $stmt->execute(['group_id' => $groupId, 'p1' => $participantId, 'p2' => $participantId]);
+        $fixtures = $stmt->fetchAll();
+
+        $results = [];
+        foreach ($fixtures as $f) {
+            $isParticipant1 = ((int)$f['participant1_id'] === $participantId);
+
+            $opponentId = $isParticipant1 ? $f['participant2_id'] : $f['participant1_id'];
+            $shotsFor = $isParticipant1 ? (int)$f['participant1_for'] : (int)$f['participant2_for'];
+            $shotsAgainst = $isParticipant1 ? (int)$f['participant1_against'] : (int)$f['participant2_against'];
+            $points = $isParticipant1 ? (int)$f['score1'] : (int)$f['score2'];
+
+            $results[] = [
+                'fixture_id' => $f['id'],
+                'opponent_id' => $opponentId,
+                'for' => $shotsFor,
+                'against' => $shotsAgainst,
+                'agg' => $shotsFor - $shotsAgainst,
+                'points' => $points
+            ];
+        }
+
+        return $results;
     }
 
     // ========== Match Integration ==========
@@ -202,7 +343,7 @@ class CompetitionFixture {
 
     /**
      * Called when a linked match is completed
-     * Updates fixture result and progresses winner in bracket
+     * Updates fixture result with detailed For/Against scores and progresses winner in bracket
      */
     public static function onMatchComplete(int $matchId): bool {
         $db = Database::getInstance();
@@ -219,7 +360,7 @@ class CompetitionFixture {
         $fixtureId = $row['id'];
         $fixture = self::find($fixtureId);
 
-        // Get match scores
+        // Get match scores (these are the actual shots/points scored)
         require_once __DIR__ . '/GameMatch.php';
         $scores = GameMatch::getScores($matchId);
 
@@ -227,35 +368,54 @@ class CompetitionFixture {
             return false;
         }
 
-        // Determine winner
-        $score1 = $scores['team1_score'];
-        $score2 = $scores['team2_score'];
+        // The match scores are the shots/points (For/Against)
+        $participant1For = $scores['team1_score'];
+        $participant2For = $scores['team2_score'];
 
+        require_once __DIR__ . '/Competition.php';
+
+        // Calculate competition points (2/1/0) based on match result
+        $drawAllowed = Competition::isDrawAllowed($fixture['game_type']);
+        $points1 = Competition::calculatePoints($participant1For, $participant2For, $drawAllowed);
+        $points2 = Competition::calculatePoints($participant2For, $participant1For, $drawAllowed);
+
+        // Determine winner
         $winnerId = null;
-        if ($score1 > $score2) {
+        if ($participant1For > $participant2For) {
             $winnerId = $fixture['participant1_id'];
-        } elseif ($score2 > $score1) {
+        } elseif ($participant2For > $participant1For) {
             $winnerId = $fixture['participant2_id'];
         }
         // Draw: no winner (for round robin this is fine)
 
-        // Update fixture
+        // Update fixture with detailed scores
         $stmt = $db->prepare('
             UPDATE competition_fixtures
-            SET status = "completed", winner_id = :winner_id, score1 = :s1, score2 = :s2
+            SET status = "completed",
+                winner_id = :winner_id,
+                score1 = :points1,
+                score2 = :points2,
+                participant1_for = :p1_for,
+                participant1_against = :p1_against,
+                participant2_for = :p2_for,
+                participant2_against = :p2_against
             WHERE id = :id
         ');
         $stmt->execute([
             'id' => $fixtureId,
             'winner_id' => $winnerId,
-            's1' => $score1,
-            's2' => $score2
+            'points1' => $points1,
+            'points2' => $points2,
+            'p1_for' => $participant1For,
+            'p1_against' => $participant2For,
+            'p2_for' => $participant2For,
+            'p2_against' => $participant1For
         ]);
 
-        // Update standings for group stage
+        // Update standings for group stage using detailed scores
         if ($fixture['stage'] === 'group') {
             require_once __DIR__ . '/CompetitionStandings.php';
-            CompetitionStandings::updateFromFixture($fixtureId);
+            CompetitionStandings::updateFromDetailedScore($fixtureId);
         }
 
         // Progress winner in knockout
@@ -294,8 +454,9 @@ class CompetitionFixture {
 
     /**
      * Record a walkover (forfeit)
+     * Winner gets default score (e.g., 21), loser gets 0
      */
-    public static function recordWalkover(int $fixtureId, int $winnerId, int $score = 21): bool {
+    public static function recordWalkover(int $fixtureId, int $winnerId, int $defaultScore = 21): bool {
         $db = Database::getInstance();
 
         $fixture = self::find($fixtureId);
@@ -308,25 +469,44 @@ class CompetitionFixture {
             return false;
         }
 
-        $score1 = ($winnerId === $fixture['participant1_id']) ? $score : 0;
-        $score2 = ($winnerId === $fixture['participant2_id']) ? $score : 0;
+        require_once __DIR__ . '/Competition.php';
+
+        // Set For/Against scores (winner gets default score, loser gets 0)
+        $isParticipant1Winner = ($winnerId === $fixture['participant1_id']);
+        $participant1For = $isParticipant1Winner ? $defaultScore : 0;
+        $participant2For = $isParticipant1Winner ? 0 : $defaultScore;
+
+        // Points: winner gets 2, loser gets 0
+        $points1 = $isParticipant1Winner ? Competition::POINTS_WIN : Competition::POINTS_LOSS;
+        $points2 = $isParticipant1Winner ? Competition::POINTS_LOSS : Competition::POINTS_WIN;
 
         $stmt = $db->prepare('
             UPDATE competition_fixtures
-            SET status = "walkover", winner_id = :winner_id, score1 = :s1, score2 = :s2
+            SET status = "walkover",
+                winner_id = :winner_id,
+                score1 = :points1,
+                score2 = :points2,
+                participant1_for = :p1_for,
+                participant1_against = :p1_against,
+                participant2_for = :p2_for,
+                participant2_against = :p2_against
             WHERE id = :id
         ');
         $stmt->execute([
             'id' => $fixtureId,
             'winner_id' => $winnerId,
-            's1' => $score1,
-            's2' => $score2
+            'points1' => $points1,
+            'points2' => $points2,
+            'p1_for' => $participant1For,
+            'p1_against' => $participant2For,
+            'p2_for' => $participant2For,
+            'p2_against' => $participant1For
         ]);
 
-        // Update standings for group stage
+        // Update standings for group stage using detailed scores
         if ($fixture['stage'] === 'group') {
             require_once __DIR__ . '/CompetitionStandings.php';
-            CompetitionStandings::updateFromFixture($fixtureId);
+            CompetitionStandings::updateFromDetailedScore($fixtureId);
         }
 
         // Progress winner

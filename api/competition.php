@@ -8,6 +8,7 @@
  * GET  action=standings&id=X           Get standings
  * GET  action=bracket&id=X             Get bracket structure
  * GET  action=participants&id=X        Get participants list
+ * GET  action=sections&id=X            Get section card data for UI display
  *
  * POST action=create                   Create competition
  * POST action=update                   Update competition (draft only)
@@ -19,6 +20,7 @@
  * POST action=start                    Start competition
  * POST action=create_match             Create match for fixture
  * POST action=walkover                 Record walkover
+ * POST action=record_score             Record detailed For/Against score
  * POST action=complete                 Complete competition
  * POST action=cancel                   Cancel competition
  *
@@ -186,6 +188,30 @@ if ($method === 'GET') {
             ApiResponse::success(['groups' => $groups]);
             break;
 
+        case 'sections':
+            // Get section card data for UI display
+            $id = (int)($_GET['id'] ?? 0);
+            if (!$id) {
+                ApiResponse::error('id required', 400);
+            }
+
+            if (!Auth::check()) {
+                ApiResponse::unauthorized();
+            }
+
+            if (!Competition::canView(Auth::id(), $id)) {
+                ApiResponse::forbidden('Not a club member');
+            }
+
+            $sections = CompetitionStandings::getAllSectionsCardData($id);
+            $competition = Competition::find($id);
+
+            ApiResponse::success([
+                'sections' => $sections,
+                'qualifiers_per_section' => $competition['qualifiers_per_section'] ?? 2
+            ]);
+            break;
+
         default:
             ApiResponse::error('Invalid action', 400);
     }
@@ -239,6 +265,9 @@ elseif ($method === 'POST') {
             if (isset($data['max_participants'])) $options['max_participants'] = (int)$data['max_participants'];
             if (isset($data['knockout_qualifiers'])) $options['knockout_qualifiers'] = (int)$data['knockout_qualifiers'];
             if (isset($data['group_count'])) $options['group_count'] = (int)$data['group_count'];
+            if (isset($data['rink_count'])) $options['rink_count'] = (int)$data['rink_count'];
+            if (isset($data['qualifiers_per_section'])) $options['qualifiers_per_section'] = (int)$data['qualifiers_per_section'];
+            if (isset($data['teams_per_section'])) $options['teams_per_section'] = (int)$data['teams_per_section'];
             if (isset($data['registration_opens'])) $options['registration_opens'] = $data['registration_opens'];
             if (isset($data['registration_closes'])) $options['registration_closes'] = $data['registration_closes'];
 
@@ -488,6 +517,44 @@ elseif ($method === 'POST') {
             }
 
             ApiResponse::success(['walkover_recorded' => true]);
+            break;
+
+        case 'record_score':
+            // Record detailed For/Against score for a fixture
+            $fixtureId = (int)($data['fixture_id'] ?? 0);
+            $participant1For = isset($data['participant1_for']) ? (int)$data['participant1_for'] : null;
+            $participant2For = isset($data['participant2_for']) ? (int)$data['participant2_for'] : null;
+
+            if (!$fixtureId || $participant1For === null || $participant2For === null) {
+                ApiResponse::error('fixture_id, participant1_for, and participant2_for required', 400);
+            }
+
+            if ($participant1For < 0 || $participant2For < 0) {
+                ApiResponse::error('Scores must be non-negative', 400);
+            }
+
+            $fixture = CompetitionFixture::find($fixtureId);
+            if (!$fixture) {
+                ApiResponse::notFound('Fixture not found');
+            }
+
+            if (!Competition::canManage($playerId, $fixture['competition_id'])) {
+                ApiResponse::forbidden('Not authorized');
+            }
+
+            if ($fixture['status'] === 'completed') {
+                ApiResponse::error('Fixture already completed', 400);
+            }
+
+            if (!CompetitionFixture::recordDetailedScore($fixtureId, $participant1For, $participant2For)) {
+                ApiResponse::error('Could not record score', 400);
+            }
+
+            ApiResponse::success([
+                'score_recorded' => true,
+                'participant1_for' => $participant1For,
+                'participant2_for' => $participant2For
+            ]);
             break;
 
         case 'complete':

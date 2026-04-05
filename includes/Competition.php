@@ -28,6 +28,11 @@ class Competition {
         'combined' => 'Group Stage + Knockout'
     ];
 
+    // Points system for match results
+    const POINTS_WIN = 2;
+    const POINTS_DRAW = 1;
+    const POINTS_LOSS = 0;
+
     // ========== Core CRUD ==========
 
     public static function find(int $id): ?array {
@@ -58,11 +63,13 @@ class Competition {
             INSERT INTO competitions (
                 club_id, created_by, name, description, format, game_type,
                 bowls_per_player, scoring_mode, target_score, max_participants,
-                knockout_qualifiers, group_count, registration_opens, registration_closes
+                knockout_qualifiers, group_count, rink_count, qualifiers_per_section,
+                teams_per_section, registration_opens, registration_closes
             ) VALUES (
                 :club_id, :created_by, :name, :description, :format, :game_type,
                 :bowls_per_player, :scoring_mode, :target_score, :max_participants,
-                :knockout_qualifiers, :group_count, :registration_opens, :registration_closes
+                :knockout_qualifiers, :group_count, :rink_count, :qualifiers_per_section,
+                :teams_per_section, :registration_opens, :registration_closes
             )
         ');
 
@@ -79,6 +86,9 @@ class Competition {
             'max_participants' => $options['max_participants'] ?? null,
             'knockout_qualifiers' => $options['knockout_qualifiers'] ?? 2,
             'group_count' => $options['group_count'] ?? null,
+            'rink_count' => $options['rink_count'] ?? 6,
+            'qualifiers_per_section' => $options['qualifiers_per_section'] ?? 2,
+            'teams_per_section' => $options['teams_per_section'] ?? 4,
             'registration_opens' => $options['registration_opens'] ?? null,
             'registration_closes' => $options['registration_closes'] ?? null
         ]);
@@ -91,8 +101,8 @@ class Competition {
 
         $allowed = [
             'name', 'description', 'bowls_per_player', 'scoring_mode', 'target_score',
-            'max_participants', 'knockout_qualifiers', 'group_count',
-            'registration_opens', 'registration_closes'
+            'max_participants', 'knockout_qualifiers', 'group_count', 'rink_count',
+            'qualifiers_per_section', 'teams_per_section', 'registration_opens', 'registration_closes'
         ];
 
         $updates = [];
@@ -355,5 +365,31 @@ class Competition {
         $competition['participant_count'] = count($competition['participants']);
 
         return $competition;
+    }
+
+    /**
+     * Calculate match points based on scores
+     * @param int $forScore - Shots scored
+     * @param int $againstScore - Shots conceded
+     * @param bool $drawAllowed - Whether draws are allowed (false for singles first-to)
+     * @return int Points awarded (2=win, 1=draw, 0=loss)
+     */
+    public static function calculatePoints(int $forScore, int $againstScore, bool $drawAllowed = true): int {
+        if ($forScore > $againstScore) {
+            return self::POINTS_WIN;
+        }
+        if ($forScore < $againstScore) {
+            return self::POINTS_LOSS;
+        }
+        // Draw
+        return $drawAllowed ? self::POINTS_DRAW : self::POINTS_WIN; // If no draws, someone must win
+    }
+
+    /**
+     * Check if draws are allowed based on game type
+     * Singles = first-to-X = no draws
+     */
+    public static function isDrawAllowed(string $gameType): bool {
+        return $gameType !== 'singles';
     }
 }

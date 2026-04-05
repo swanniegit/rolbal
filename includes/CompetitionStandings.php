@@ -7,10 +7,8 @@ require_once __DIR__ . '/db.php';
 
 class CompetitionStandings {
 
-    // Points for results (configurable per competition in future)
-    const POINTS_WIN = 2;
-    const POINTS_DRAW = 1;
-    const POINTS_LOSS = 0;
+    // Note: Points are now managed in Competition class
+    // Use Competition::POINTS_WIN, POINTS_DRAW, POINTS_LOSS
 
     /**
      * Update standings after a fixture is completed
@@ -82,6 +80,92 @@ class CompetitionStandings {
     }
 
     /**
+     * Update standings from detailed score (For/Against shots)
+     * Used by section-based competitions
+     */
+    public static function updateFromDetailedScore(int $fixtureId): bool {
+        $db = Database::getInstance();
+
+        // Get fixture details with detailed scores
+        $stmt = $db->prepare('
+            SELECT f.*, c.format, c.game_type
+            FROM competition_fixtures f
+            JOIN competitions c ON c.id = f.competition_id
+            WHERE f.id = :id
+        ');
+        $stmt->execute(['id' => $fixtureId]);
+        $fixture = $stmt->fetch();
+
+        if (!$fixture || $fixture['status'] !== 'completed') {
+            return false;
+        }
+
+        // Only update standings for group stage fixtures
+        if ($fixture['stage'] !== 'group') {
+            return true;
+        }
+
+        require_once __DIR__ . '/Competition.php';
+
+        $p1 = $fixture['participant1_id'];
+        $p2 = $fixture['participant2_id'];
+        $p1For = (int)$fixture['participant1_for'];
+        $p1Against = (int)$fixture['participant1_against'];
+        $p2For = (int)$fixture['participant2_for'];
+        $p2Against = (int)$fixture['participant2_against'];
+
+        // Determine result based on shots (draws allowed based on game type)
+        $drawAllowed = Competition::isDrawAllowed($fixture['game_type']);
+
+        if ($p1For > $p1Against) {
+            $result1 = 'win';
+            $result2 = 'loss';
+        } elseif ($p1For < $p1Against) {
+            $result1 = 'loss';
+            $result2 = 'win';
+        } else {
+            $result1 = $drawAllowed ? 'draw' : 'win'; // If no draws, someone must win
+            $result2 = $drawAllowed ? 'draw' : 'loss';
+        }
+
+        $db->beginTransaction();
+
+        try {
+            // Update participant 1
+            self::updateParticipantStats(
+                $fixture['competition_id'],
+                $fixture['group_id'],
+                $p1,
+                $p1For,
+                $p1Against,
+                0, 0, // ends not used in detailed scoring
+                $result1
+            );
+
+            // Update participant 2
+            self::updateParticipantStats(
+                $fixture['competition_id'],
+                $fixture['group_id'],
+                $p2,
+                $p2For,
+                $p2Against,
+                0, 0,
+                $result2
+            );
+
+            // Recalculate positions
+            self::recalculatePositions($fixture['competition_id'], $fixture['group_id']);
+
+            $db->commit();
+            return true;
+
+        } catch (Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
      * Update a single participant's stats
      */
     private static function updateParticipantStats(
@@ -95,11 +179,12 @@ class CompetitionStandings {
         string $result
     ): void {
         $db = Database::getInstance();
+        require_once __DIR__ . '/Competition.php';
 
         $points = match($result) {
-            'win' => self::POINTS_WIN,
-            'draw' => self::POINTS_DRAW,
-            default => self::POINTS_LOSS
+            'win' => Competition::POINTS_WIN,
+            'draw' => Competition::POINTS_DRAW,
+            default => Competition::POINTS_LOSS
         };
 
         $stmt = $db->prepare('
@@ -331,6 +416,7 @@ class CompetitionStandings {
 
     /**
      * Recalculate all standings from fixtures (recovery function)
+     * Uses detailed scores if available, falls back to match-based scoring
      */
     public static function recalculateAllFromFixtures(int $competitionId): bool {
         $db = Database::getInstance();
@@ -338,21 +424,128 @@ class CompetitionStandings {
         // Reset first
         self::resetStandings($competitionId);
 
-        // Get all completed group fixtures
+        // Get all completed group fixtures with their detailed scores
         $stmt = $db->prepare('
-            SELECT id FROM competition_fixtures
+            SELECT id, participant1_for, match_id
+            FROM competition_fixtures
             WHERE competition_id = :competition_id
             AND stage = "group"
-            AND status = "completed"
+            AND status IN ("completed", "walkover")
         ');
         $stmt->execute(['competition_id' => $competitionId]);
         $fixtures = $stmt->fetchAll();
 
-        // Replay each fixture
+        // Replay each fixture using appropriate method
         foreach ($fixtures as $f) {
-            self::updateFromFixture($f['id']);
+            // Use detailed scores if available (participant1_for is set)
+            if ($f['participant1_for'] !== null) {
+                self::updateFromDetailedScore($f['id']);
+            } elseif ($f['match_id']) {
+                // Fall back to match-based scoring for legacy fixtures
+                self::updateFromFixture($f['id']);
+            }
         }
 
         return true;
+    }
+
+    /**
+     * Get section card data for UI display
+     * Returns teams with their position numbers and match results
+     *
+     * @param int $competitionId
+     * @param int $groupId
+     * @param int $qualifiersCount How many advance to knockout
+     * @return array Section data formatted for card display
+     */
+    public static function getSectionCardData(int $competitionId, int $groupId, int $qualifiersCount = 2): array {
+        require_once __DIR__ . '/CompetitionParticipant.php';
+        require_once __DIR__ . '/CompetitionFixture.php';
+
+        $db = Database::getInstance();
+
+        // Get group info
+        $stmt = $db->prepare('SELECT * FROM competition_groups WHERE id = :id');
+        $stmt->execute(['id' => $groupId]);
+        $group = $stmt->fetch();
+
+        if (!$group) {
+            return [];
+        }
+
+        // Get standings with positions
+        $standings = self::getStandings($competitionId, $groupId);
+
+        // Build team cards
+        $teams = [];
+        foreach ($standings as $standing) {
+            $participantId = $standing['participant_id'];
+
+            // Get match results against each opponent
+            $matchResults = CompetitionFixture::getParticipantSectionResults($participantId, $groupId);
+
+            // Calculate totals
+            $totals = [
+                'for' => 0,
+                'against' => 0,
+                'agg' => 0,
+                'points' => 0
+            ];
+
+            foreach ($matchResults as $result) {
+                $totals['for'] += $result['for'];
+                $totals['against'] += $result['against'];
+                $totals['agg'] += $result['agg'];
+                $totals['points'] += $result['points'];
+            }
+
+            // Determine rank badge
+            $rank = null;
+            $position = (int)$standing['position'];
+            if ($position === 1) {
+                $rank = 'Winner';
+            } elseif ($position <= $qualifiersCount) {
+                $rank = 'Runner Up';
+            }
+
+            $teams[] = [
+                'id' => $participantId,
+                'name' => $standing['participant_name'] ?? 'Team ' . $participantId,
+                'position' => $position,
+                'matches' => $matchResults,
+                'totals' => $totals,
+                'rank' => $rank
+            ];
+        }
+
+        return [
+            'id' => $groupId,
+            'name' => $group['group_name'],
+            'number' => $group['group_number'],
+            'teams' => $teams
+        ];
+    }
+
+    /**
+     * Get all sections with card data for competition
+     */
+    public static function getAllSectionsCardData(int $competitionId): array {
+        require_once __DIR__ . '/CompetitionRoundRobin.php';
+        require_once __DIR__ . '/Competition.php';
+
+        $competition = Competition::find($competitionId);
+        if (!$competition) {
+            return [];
+        }
+
+        $qualifiersCount = $competition['qualifiers_per_section'] ?? 2;
+        $groups = CompetitionRoundRobin::getGroups($competitionId);
+        $sections = [];
+
+        foreach ($groups as $group) {
+            $sections[] = self::getSectionCardData($competitionId, $group['id'], $qualifiersCount);
+        }
+
+        return $sections;
     }
 }

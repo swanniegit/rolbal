@@ -110,16 +110,21 @@ Template::pageHead('Manage Competition', [], '#2d5016', '../');
                     <?php foreach ($pendingFixtures as $f):
                         $fixture = CompetitionFixture::findWithDetails($f['id']);
                     ?>
-                    <div class="fixture-row">
+                    <div class="fixture-row" data-fixture-id="<?= $fixture['id'] ?>">
                         <div class="fixture-info">
-                            <span class="stage"><?= CompetitionFixture::getStageName($fixture['stage']) ?></span>
+                            <span class="stage"><?= CompetitionFixture::getStageName($fixture['stage']) ?><?= $f['rink_number'] ? ' (Rink ' . $f['rink_number'] . ')' : '' ?></span>
                             <span class="teams"><?= htmlspecialchars($fixture['participant1_name']) ?> vs <?= htmlspecialchars($fixture['participant2_name']) ?></span>
                         </div>
-                        <?php if ($fixture['match_id']): ?>
-                        <a href="../matches/score.php?id=<?= $fixture['match_id'] ?>" class="btn-small">Score</a>
-                        <?php else: ?>
-                        <button class="btn-small primary" onclick="createMatch(<?= $fixture['id'] ?>)">Create Match</button>
-                        <?php endif; ?>
+                        <div class="fixture-actions">
+                            <?php if ($fixture['stage'] === 'group'): ?>
+                            <button class="btn-small" onclick="openScoreEntry(<?= $fixture['id'] ?>, '<?= addslashes($fixture['participant1_name']) ?>', '<?= addslashes($fixture['participant2_name']) ?>')">Quick Score</button>
+                            <?php endif; ?>
+                            <?php if ($fixture['match_id']): ?>
+                            <a href="../matches/score.php?id=<?= $fixture['match_id'] ?>" class="btn-small primary">Live Score</a>
+                            <?php else: ?>
+                            <button class="btn-small" onclick="createMatch(<?= $fixture['id'] ?>)">Create Match</button>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -135,6 +140,29 @@ Template::pageHead('Manage Competition', [], '#2d5016', '../');
             </div>
             <?php endif; ?>
         </main>
+    </div>
+
+    <!-- Quick Score Entry Modal -->
+    <div id="scoreModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Record Score</h3>
+            <div class="score-entry">
+                <div class="team-score">
+                    <label id="team1Label">Team 1</label>
+                    <input type="number" id="score1" min="0" max="99" value="0">
+                </div>
+                <span class="vs-divider">:</span>
+                <div class="team-score">
+                    <label id="team2Label">Team 2</label>
+                    <input type="number" id="score2" min="0" max="99" value="0">
+                </div>
+            </div>
+            <input type="hidden" id="scoreFixtureId">
+            <div class="modal-actions">
+                <button type="button" class="btn-action" onclick="closeScoreModal()">Cancel</button>
+                <button type="button" class="btn-action primary" onclick="submitScore()">Save Score</button>
+            </div>
+        </div>
     </div>
 
     <style>
@@ -261,17 +289,86 @@ Template::pageHead('Manage Competition', [], '#2d5016', '../');
         color: var(--text-secondary);
         font-style: italic;
     }
+    .fixture-actions {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    /* Modal Styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        width: 90%;
+        max-width: 400px;
+    }
+    .modal-content h3 {
+        margin: 0 0 1rem;
+        text-align: center;
+    }
+    .score-entry {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+    .team-score {
+        text-align: center;
+    }
+    .team-score label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .team-score input {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        text-align: center;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+    }
+    .vs-divider {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--text-secondary);
+    }
+    .modal-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
     </style>
 
     <script>
     const competitionId = <?= $id ?>;
+    const csrfToken = '<?= Auth::generateCsrfToken() ?>';
 
     async function apiCall(action, data = {}) {
         try {
             const res = await fetch('../api/competition.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, id: competitionId, ...data })
+                body: JSON.stringify({ action, id: competitionId, csrf_token: csrfToken, ...data })
             });
             return await res.json();
         } catch (err) {
@@ -341,7 +438,10 @@ Template::pageHead('Manage Competition', [], '#2d5016', '../');
 
     document.getElementById('deleteBtn')?.addEventListener('click', async () => {
         if (!confirm('Delete this competition? This cannot be undone.')) return;
-        const res = await fetch('../api/competition.php?id=' + competitionId, { method: 'DELETE' });
+        const res = await fetch('../api/competition.php?id=' + competitionId, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-Token': csrfToken }
+        });
         const result = await res.json();
         if (result.success) {
             window.location.href = 'index.php?club=<?= $competition['club_id'] ?>';
@@ -376,6 +476,58 @@ Template::pageHead('Manage Competition', [], '#2d5016', '../');
             showMessage(result.error, true);
         }
     }
+
+    // Quick Score Entry Modal
+    function openScoreEntry(fixtureId, team1Name, team2Name) {
+        document.getElementById('scoreFixtureId').value = fixtureId;
+        document.getElementById('team1Label').textContent = team1Name;
+        document.getElementById('team2Label').textContent = team2Name;
+        document.getElementById('score1').value = 0;
+        document.getElementById('score2').value = 0;
+        document.getElementById('scoreModal').style.display = 'flex';
+        document.getElementById('score1').focus();
+    }
+
+    function closeScoreModal() {
+        document.getElementById('scoreModal').style.display = 'none';
+    }
+
+    async function submitScore() {
+        const fixtureId = parseInt(document.getElementById('scoreFixtureId').value);
+        const score1 = parseInt(document.getElementById('score1').value) || 0;
+        const score2 = parseInt(document.getElementById('score2').value) || 0;
+
+        if (score1 === 0 && score2 === 0) {
+            if (!confirm('Both scores are 0. Are you sure?')) return;
+        }
+
+        const result = await apiCall('record_score', {
+            fixture_id: fixtureId,
+            participant1_for: score1,
+            participant2_for: score2
+        });
+
+        if (result.success) {
+            closeScoreModal();
+            showMessage('Score recorded successfully');
+            // Remove the fixture row from the list
+            const row = document.querySelector(`[data-fixture-id="${fixtureId}"]`);
+            if (row) row.remove();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showMessage(result.error, true);
+        }
+    }
+
+    // Close modal on outside click
+    document.getElementById('scoreModal').addEventListener('click', function(e) {
+        if (e.target === this) closeScoreModal();
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeScoreModal();
+    });
     </script>
 </body>
 </html>
