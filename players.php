@@ -41,7 +41,7 @@ if ($isOwnProfile && $currentUser) {
 $pageTitle = $player ? htmlspecialchars($player['name']) : 'Players';
 $headerTitle = $player ? 'Profile' : 'Players';
 $rightHtml = $isLoggedIn
-    ? '<a href="api/auth.php?action=logout" class="logout-btn" id="logoutBtn">Logout</a>'
+    ? '<a href="#" class="logout-link" id="logoutBtn">Logout</a>'
     : '<span></span>';
 
 Template::pageHead($pageTitle);

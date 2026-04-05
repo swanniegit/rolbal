@@ -27,6 +27,7 @@ $playerName = Auth::name();
             <?php if ($isLoggedIn): ?>
             <div class="login-status">
                 <a href="players.php" class="player-link"><?= htmlspecialchars($playerName) ?></a>
+                <a href="#" class="logout-link" id="logoutBtn">Logout</a>
             </div>
             <?php else: ?>
             <div class="login-status">
@@ -77,5 +78,16 @@ $playerName = Auth::name();
     </div>
 
     <script src="js/app.js"></script>
+    <?php if ($isLoggedIn): ?>
+    <script>
+    document.getElementById('logoutBtn').addEventListener('click', async function(e) {
+        e.preventDefault();
+        const form = new FormData();
+        form.append('action', 'logout');
+        await fetch('api/auth.php', { method: 'POST', body: form });
+        window.location.reload();
+    });
+    </script>
+    <?php endif; ?>
 </body>
 </html>

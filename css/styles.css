@@ -75,6 +75,24 @@ body {
     transform: translateY(-1px);
 }
 
+.logout-link {
+    font-size: 0.875rem;
+    text-decoration: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: #c0392b;
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    transition: background var(--transition), transform var(--transition);
+    margin-left: 0.5rem;
+}
+
+.logout-link:hover {
+    background: #a93226;
+    transform: translateY(-1px);
+}
+
 .player-link {
     font-size: 0.875rem;
     text-decoration: none;
