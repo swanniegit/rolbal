@@ -1,12 +1,16 @@
 <?php
 /**
  * Match API - Live Match Scoring System
+ *
+ * Security: CSRF validation on state-changing operations
+ * Authorization: Club membership and role-based permissions
  */
 
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/GameMatch.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/RollValidator.php';
+require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/ApiResponse.php';
 
 try {
@@ -85,6 +89,12 @@ try {
         }
 
     } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // CSRF validation for all POST actions
+        $csrf = $_POST['csrf_token'] ?? '';
+        if (!Auth::validateCsrfToken($csrf)) {
+            ApiResponse::forbidden('Invalid security token');
+        }
+
         $playerId = ApiResponse::requireAuth();
         $action = $_POST['action'] ?? '';
 
@@ -268,6 +278,12 @@ try {
         }
 
     } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        // CSRF validation via header
+        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!Auth::validateCsrfToken($csrf)) {
+            ApiResponse::forbidden('Invalid security token');
+        }
+
         $playerId = ApiResponse::requireAuth();
 
         $matchId = isset($_GET['id']) ? (int)$_GET['id'] : 0;

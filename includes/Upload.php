@@ -34,7 +34,19 @@ class Upload {
             return true;
         }
 
+        // Security: Prevent path traversal attacks
+        if (basename($filename) !== $filename) {
+            return false;
+        }
+
         $path = self::CLUB_ICONS_DIR . $filename;
+
+        // Security: Verify the resolved path is within allowed directory
+        $realPath = realpath($path);
+        $realDir = realpath(self::CLUB_ICONS_DIR);
+        if ($realPath === false || $realDir === false || strpos($realPath, $realDir) !== 0) {
+            return false;
+        }
 
         if (file_exists($path)) {
             return unlink($path);

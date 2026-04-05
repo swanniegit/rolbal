@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Rolbal is a mobile-first PWA for tracking lawn bowls practice sessions. Players record roll positions on a visual grid and analyze performance statistics over time.
+BowlsTracker is a mobile-first PWA for tracking lawn bowls practice sessions and club competitions. Players record roll positions on a visual grid, analyze performance statistics, participate in challenges, and track live match scores.
+
+**Live Site:** https://bowlstracker.co.za
 
 ## Production Deployment (PSCP)
 
@@ -112,8 +114,36 @@ Run migrations in order from `sql/` folder:
 - Vanilla JS with async/await fetch
 - FormData for POST requests
 - Toggle buttons use `data-field` and `data-value` attributes
-- Anonymous users tracked via `rolbal_free_games` cookie (3 games/month limit)
+- Anonymous users tracked via `bowlstracker_free_games` cookie (3 games/month limit)
 - PWA support via `manifest.json` and `sw.js`
+
+### Template System
+
+The `Template` class provides reusable PHP components:
+```php
+Template::pageHead('Page Title', ['pages/stats.css'], '#2d5016', '../');
+Template::header('Page Title', 'back-url.php', '<button>Right</button>');
+Template::flash($flash);
+Template::emptyState('No data', 'create.php', 'Create New');
+Template::formError('errorId');
+```
+
+Templates are stored in `includes/templates/`:
+- `page_head.php` - DOCTYPE + head section with meta tags
+- `header.php` - App header with back button and title
+- `flash.php` - Flash message display
+- `empty_state.php` - Empty state with optional action button
+- `form_error.php` / `form_message.php` - Form feedback elements
+
+### CSS Architecture
+
+- `css/styles.css` - Global styles, CSS variables, base components
+- `css/pages/*.css` - Page-specific styles (match-scorer.css, challenge-play.css, stats.css, etc.)
+
+Page CSS files are included via Template::pageHead():
+```php
+Template::pageHead('Stats', ['pages/stats.css']);
+```
 
 ## Key Files
 
@@ -177,3 +207,29 @@ Live match scoring for club members with real-time updates.
 3. Record ends → select scoring team + shots (1-8)
 4. Viewers see auto-refresh (5 seconds) scoreboard
 5. Complete match → status becomes 'completed'
+
+## Competition System (Planned)
+
+Club tournaments supporting Round Robin, Knockout, and Combined formats.
+
+### Competition Formats
+- **Round Robin**: Everyone plays everyone (or within groups)
+- **Knockout**: Single elimination bracket with play-ins for non-power-of-2 sizes
+- **Combined**: Group stage (round robin) → top qualifiers advance to knockout
+
+### Database Tables (sql/add_competitions.sql)
+- `competitions` - Tournament definitions (format, game_type, status, scoring)
+- `competition_participants` - Registered teams/individuals
+- `competition_participant_players` - Players in each team
+- `competition_groups` - Groups for round robin
+- `competition_fixtures` - Scheduled matches with bracket positions
+- `competition_standings` - Cached standings with tie-breakers
+
+### Key Models
+- `Competition.php` - Main CRUD, status changes, permissions
+- `CompetitionBracket.php` - Knockout bracket generation with play-ins
+- `CompetitionRoundRobin.php` - Round robin scheduling (circle method)
+- `CompetitionFixture.php` - Fixture management, match linking
+- `CompetitionStandings.php` - Standings calculation
+
+See plan file: `.claude/plans/wild-wiggling-teapot.md`

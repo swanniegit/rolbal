@@ -1,11 +1,15 @@
 <?php
 /**
  * Challenge API
+ *
+ * Security: CSRF validation on state-changing operations
+ * Authorization: Player ownership checks on attempts
  */
 
 require_once __DIR__ . '/../includes/Challenge.php';
 require_once __DIR__ . '/../includes/ChallengeAttempt.php';
 require_once __DIR__ . '/../includes/RollValidator.php';
+require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/ApiResponse.php';
 
 try {
@@ -81,6 +85,12 @@ try {
         }
 
     } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // CSRF validation for all POST actions
+        $csrf = $_POST['csrf_token'] ?? '';
+        if (!Auth::validateCsrfToken($csrf)) {
+            ApiResponse::forbidden('Invalid security token');
+        }
+
         $playerId = ApiResponse::requireAuth();
         $action = $_POST['action'] ?? '';
 
@@ -167,6 +177,12 @@ try {
         }
 
     } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        // CSRF validation via header
+        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!Auth::validateCsrfToken($csrf)) {
+            ApiResponse::forbidden('Invalid security token');
+        }
+
         $playerId = ApiResponse::requireAuth();
 
         $attemptId = isset($_GET['attempt_id']) ? (int)$_GET['attempt_id'] : 0;

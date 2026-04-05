@@ -7,10 +7,13 @@
  * @param string $themeColor - Theme color (default: #2d5016)
  */
 
+require_once __DIR__ . '/../Auth.php';
+
 $pageTitle = $pageTitle ?? '';
 $css = $css ?? [];
 $themeColor = $themeColor ?? '#2d5016';
 $fullTitle = $pageTitle ? "BowlsTracker - $pageTitle" : 'BowlsTracker';
+$csrfToken = Auth::generateCsrfToken();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -19,6 +22,7 @@ $fullTitle = $pageTitle ? "BowlsTracker - $pageTitle" : 'BowlsTracker';
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="<?= htmlspecialchars($themeColor) ?>">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
     <title><?= htmlspecialchars($fullTitle) ?></title>
     <link rel="manifest" href="<?= $manifestPath ?? 'manifest.json' ?>">
     <link rel="stylesheet" href="<?= $cssBasePath ?? '' ?>css/styles.css">

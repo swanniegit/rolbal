@@ -199,6 +199,13 @@ elseif ($method === 'POST') {
 
     $playerId = Auth::id();
     $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+
+    // CSRF validation for all POST actions
+    $csrf = $data['csrf_token'] ?? '';
+    if (!Auth::validateCsrfToken($csrf)) {
+        ApiResponse::forbidden('Invalid security token');
+    }
+
     $action = $data['action'] ?? '';
 
     switch ($action) {
@@ -524,6 +531,12 @@ elseif ($method === 'POST') {
 
 // ========== DELETE Requests ==========
 elseif ($method === 'DELETE') {
+    // CSRF validation via header
+    $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!Auth::validateCsrfToken($csrf)) {
+        ApiResponse::forbidden('Invalid security token');
+    }
+
     if (!Auth::check()) {
         ApiResponse::unauthorized();
     }

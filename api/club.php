@@ -1,15 +1,17 @@
 <?php
 /**
  * Club API
+ *
+ * Security: CSRF validation on state-changing operations
+ * Authorization: Membership and ownership checks
  */
-
-header('Content-Type: application/json');
 
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/Club.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/Upload.php';
 require_once __DIR__ . '/../includes/Auth.php';
+require_once __DIR__ . '/../includes/ApiResponse.php';
 
 try {
     $method = $_SERVER['REQUEST_METHOD'];
@@ -19,7 +21,7 @@ try {
 
         if ($action === 'list') {
             $clubs = Club::all();
-            echo json_encode(['success' => true, 'clubs' => $clubs]);
+            ApiResponse::success(['clubs' => $clubs]);
 
         } elseif ($action === 'view') {
             $slug = $_GET['slug'] ?? '';
@@ -28,8 +30,7 @@ try {
             }
             $club = Club::findBySlug($slug);
             if (!$club) {
-                http_response_code(404);
-                throw new Exception('Club not found');
+                ApiResponse::notFound('Club not found');
             }
             $members = Club::getMembers($club['id']);
             $stats = Club::getStats($club['id']);
@@ -38,8 +39,7 @@ try {
             $isMember = $playerId ? ClubMember::isMember($club['id'], $playerId) : false;
             $canManage = $playerId ? Club::canManage($club['id'], $playerId) : false;
 
-            echo json_encode([
-                'success' => true,
+            ApiResponse::success([
                 'club' => $club,
                 'members' => $members,
                 'stats' => $stats,
@@ -53,7 +53,7 @@ try {
                 throw new Exception('Club ID required');
             }
             $members = Club::getMembers($id);
-            echo json_encode(['success' => true, 'members' => $members]);
+            ApiResponse::success(['members' => $members]);
 
         } elseif ($action === 'search') {
             $query = $_GET['q'] ?? '';
@@ -61,27 +61,26 @@ try {
                 throw new Exception('Search query must be at least 2 characters');
             }
             $clubs = Club::search($query);
-            echo json_encode(['success' => true, 'clubs' => $clubs]);
+            ApiResponse::success(['clubs' => $clubs]);
 
         } elseif ($action === 'my_clubs') {
-            $playerId = Auth::id();
-            if (!$playerId) {
-                throw new Exception('Login required');
-            }
+            $playerId = ApiResponse::requireAuth();
             $clubs = ClubMember::getPlayerClubs($playerId);
-            echo json_encode(['success' => true, 'clubs' => $clubs]);
+            ApiResponse::success(['clubs' => $clubs]);
 
         } else {
-            throw new Exception('Invalid action');
+            ApiResponse::invalidAction();
         }
 
     } elseif ($method === 'POST') {
-        $action = $_POST['action'] ?? '';
-        $playerId = Auth::id();
-
-        if (!$playerId) {
-            throw new Exception('Login required');
+        // CSRF validation for all POST actions
+        $csrf = $_POST['csrf_token'] ?? '';
+        if (!Auth::validateCsrfToken($csrf)) {
+            ApiResponse::forbidden('Invalid security token');
         }
+
+        $action = $_POST['action'] ?? '';
+        $playerId = ApiResponse::requireAuth();
 
         if ($action === 'create') {
             $name = trim($_POST['name'] ?? '');
@@ -119,7 +118,7 @@ try {
             }
 
             $club = Club::find($clubId);
-            echo json_encode(['success' => true, 'club' => $club]);
+            ApiResponse::success(['club' => $club]);
 
         } elseif ($action === 'join') {
             $clubId = (int) ($_POST['club_id'] ?? 0);
@@ -128,17 +127,17 @@ try {
             }
             $club = Club::find($clubId);
             if (!$club) {
-                throw new Exception('Club not found');
+                ApiResponse::notFound('Club not found');
             }
             if (!$club['is_public']) {
-                throw new Exception('This club is private');
+                ApiResponse::forbidden('This club is private');
             }
             if (ClubMember::isMember($clubId, $playerId)) {
                 throw new Exception('Already a member');
             }
 
             ClubMember::add($clubId, $playerId, 'member');
-            echo json_encode(['success' => true]);
+            ApiResponse::success();
 
         } elseif ($action === 'leave') {
             $clubId = (int) ($_POST['club_id'] ?? 0);
@@ -155,12 +154,12 @@ try {
 
             ClubMember::remove($clubId, $playerId);
             ClubMember::setPrimaryClub($playerId, null);
-            echo json_encode(['success' => true]);
+            ApiResponse::success();
 
         } elseif ($action === 'update') {
             $clubId = (int) ($_POST['club_id'] ?? 0);
             if (!$clubId || !Club::canManage($clubId, $playerId)) {
-                throw new Exception('Not authorized');
+                ApiResponse::forbidden('Not authorized');
             }
 
             $updates = [];
@@ -186,12 +185,12 @@ try {
             }
 
             $club = Club::find($clubId);
-            echo json_encode(['success' => true, 'club' => $club]);
+            ApiResponse::success(['club' => $club]);
 
         } elseif ($action === 'upload_icon') {
             $clubId = (int) ($_POST['club_id'] ?? 0);
             if (!$clubId || !Club::canManage($clubId, $playerId)) {
-                throw new Exception('Not authorized');
+                ApiResponse::forbidden('Not authorized');
             }
 
             if (!isset($_FILES['icon']) || $_FILES['icon']['error'] !== UPLOAD_ERR_OK) {
@@ -236,12 +235,12 @@ try {
             }
 
             Club::update($clubId, ['icon_filename' => $iconFilename]);
-            echo json_encode(['success' => true, 'icon_filename' => $iconFilename]);
+            ApiResponse::success(['icon_filename' => $iconFilename]);
 
         } elseif ($action === 'remove_icon') {
             $clubId = (int) ($_POST['club_id'] ?? 0);
             if (!$clubId || !Club::canManage($clubId, $playerId)) {
-                throw new Exception('Not authorized');
+                ApiResponse::forbidden('Not authorized');
             }
 
             $club = Club::find($clubId);
@@ -250,14 +249,14 @@ try {
                 Club::update($clubId, ['icon_filename' => null]);
             }
 
-            echo json_encode(['success' => true]);
+            ApiResponse::success();
 
         } elseif ($action === 'remove_member') {
             $clubId = (int) ($_POST['club_id'] ?? 0);
             $memberId = (int) ($_POST['member_id'] ?? 0);
 
             if (!$clubId || !Club::canManage($clubId, $playerId)) {
-                throw new Exception('Not authorized');
+                ApiResponse::forbidden('Not authorized');
             }
             if (!$memberId) {
                 throw new Exception('Member ID required');
@@ -265,14 +264,14 @@ try {
 
             $memberRole = ClubMember::getRole($clubId, $memberId);
             if ($memberRole === 'owner') {
-                throw new Exception('Cannot remove the owner');
+                ApiResponse::forbidden('Cannot remove the owner');
             }
             if ($memberRole === 'admin' && !Club::isOwner($clubId, $playerId)) {
-                throw new Exception('Only owner can remove admins');
+                ApiResponse::forbidden('Only owner can remove admins');
             }
 
             ClubMember::remove($clubId, $memberId);
-            echo json_encode(['success' => true]);
+            ApiResponse::success();
 
         } elseif ($action === 'update_member_role') {
             $clubId = (int) ($_POST['club_id'] ?? 0);
@@ -280,34 +279,37 @@ try {
             $role = $_POST['role'] ?? '';
 
             if (!$clubId || !Club::isOwner($clubId, $playerId)) {
-                throw new Exception('Only owner can change roles');
+                ApiResponse::forbidden('Only owner can change roles');
             }
             if (!$memberId || !in_array($role, ['admin', 'member'])) {
                 throw new Exception('Invalid member or role');
             }
 
             ClubMember::updateRole($clubId, $memberId, $role);
-            echo json_encode(['success' => true]);
+            ApiResponse::success();
 
         } elseif ($action === 'set_primary') {
             $clubId = (int) ($_POST['club_id'] ?? 0);
 
             if ($clubId && !ClubMember::isMember($clubId, $playerId)) {
-                throw new Exception('Must be a member to set as primary');
+                ApiResponse::forbidden('Must be a member to set as primary');
             }
 
             ClubMember::setPrimaryClub($playerId, $clubId ?: null);
-            echo json_encode(['success' => true]);
+            ApiResponse::success();
 
         } else {
-            throw new Exception('Invalid action');
+            ApiResponse::invalidAction();
         }
 
     } elseif ($method === 'DELETE') {
-        $playerId = Auth::id();
-        if (!$playerId) {
-            throw new Exception('Login required');
+        // CSRF validation via header
+        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!Auth::validateCsrfToken($csrf)) {
+            ApiResponse::forbidden('Invalid security token');
         }
+
+        $playerId = ApiResponse::requireAuth();
 
         $clubId = (int) ($_GET['id'] ?? 0);
         if (!$clubId) {
@@ -315,19 +317,16 @@ try {
         }
 
         if (!Club::isOwner($clubId, $playerId)) {
-            throw new Exception('Only owner can delete the club');
+            ApiResponse::forbidden('Only owner can delete the club');
         }
 
         Club::delete($clubId, $playerId);
-        echo json_encode(['success' => true]);
+        ApiResponse::success();
 
     } else {
-        throw new Exception('Method not allowed');
+        ApiResponse::methodNotAllowed();
     }
 
 } catch (Exception $e) {
-    if (http_response_code() === 200) {
-        http_response_code(400);
-    }
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    ApiResponse::error($e->getMessage());
 }

@@ -23,6 +23,14 @@ class Roll {
         return (int) $db->lastInsertId();
     }
 
+    public static function find(int $id): ?array {
+        $db = Database::getInstance();
+        $stmt = $db->prepare('SELECT * FROM rolls WHERE id = :id');
+        $stmt->execute(['id' => $id]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
     public static function forSession(int $sessionId): array {
         $db = Database::getInstance();
         $stmt = $db->prepare('

@@ -1,0 +1,45 @@
+# BowlsTracker Security Configuration
+
+# Block access to sensitive files
+<FilesMatch "^\.env|\.env\..*|config\.php|config\.example\.php$">
+    Require all denied
+</FilesMatch>
+
+# Block access to includes directory (PHP files should only be included, not accessed directly)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct access to includes directory
+    RewriteRule ^includes/ - [F,L]
+
+    # Block direct access to sql directory
+    RewriteRule ^sql/ - [F,L]
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Disable server signature
+ServerSignature Off
+
+# Set security headers
+<IfModule mod_headers.c>
+    # Prevent MIME type sniffing
+    Header set X-Content-Type-Options "nosniff"
+
+    # Enable XSS filter
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Prevent clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+
+    # Referrer policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Protect uploads directory - only allow image files
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_URI} ^/uploads/
+    RewriteCond %{REQUEST_URI} !\.(jpg|jpeg|png|gif|webp)$ [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
