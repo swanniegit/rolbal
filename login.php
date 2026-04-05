@@ -7,7 +7,7 @@ require_once __DIR__ . '/includes/Auth.php';
 require_once __DIR__ . '/includes/Template.php';
 
 if (Auth::check()) {
-    header('Location: players.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -74,7 +74,7 @@ Template::pageHead('Login');
                 const data = await res.json();
 
                 if (data.success) {
-                    window.location.href = 'players.php';
+                    window.location.href = 'index.php';
                 } else {
                     throw new Error(data.error || 'Login failed');
                 }
