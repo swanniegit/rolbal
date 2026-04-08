@@ -21,6 +21,7 @@ $csrfToken = Auth::generateCsrfToken();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="<?= htmlspecialchars($themeColor) ?>">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
     <title><?= htmlspecialchars($fullTitle) ?></title>

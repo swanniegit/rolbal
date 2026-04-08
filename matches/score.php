@@ -54,18 +54,8 @@ if (!$match) {
 
 $club = Club::find($match['club_id']);
 $targetScore = $match['target_score'] ?? $match['total_ends'] ?? 21;
+Template::pageHead('Score Match', ['../css/pages/match-scorer.css'], '#2d5016', '../');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>BowlsTracker - Score Match</title>
-    <link rel="manifest" href="../manifest.json">
-    <link rel="stylesheet" href="../css/pages/match-scorer.css">
-</head>
 <body>
     <div class="header">
         <a href="index.php?club=<?= $match['club_id'] ?>">&larr;</a>
@@ -94,7 +84,11 @@ $targetScore = $match['target_score'] ?? $match['total_ends'] ?? 21;
                 </div>
             </div>
             <div class="end-info">
+                <?php if ($match['scoring_mode'] === 'first_to'): ?>
+                First to <?= $targetScore ?> · End <span id="currentEnd"><?= $match['current_end'] ?></span>
+                <?php else: ?>
                 End <span id="currentEnd"><?= $match['current_end'] ?></span> of <?= $targetScore ?>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -147,10 +141,23 @@ $targetScore = $match['target_score'] ?? $match['total_ends'] ?? 21;
         <?php endif; ?>
     </div>
 
+    <!-- Victory Modal -->
+    <div id="victoryModal" class="victory-modal hidden">
+        <div class="victory-content">
+            <div class="victory-trophy">🏆</div>
+            <div class="victory-winner" id="victoryWinner"></div>
+            <div class="victory-score" id="victoryScore"></div>
+            <a href="view.php?id=<?= $matchId ?>" class="btn-view-match">View Full Match</a>
+        </div>
+    </div>
+
     <script>
     const MATCH_ID = <?= $matchId ?>;
     const CLUB_ID = <?= $match['club_id'] ?>;
-    const TOTAL_ENDS = <?= $targetScore ?>;
+    const SCORING_MODE = '<?= $match['scoring_mode'] ?? 'ends' ?>';
+    const TARGET_SCORE = <?= $targetScore ?>;
+    const TEAM1_NAME = <?= json_encode($match['teams'][0]['team_name'] ?? 'Team 1') ?>;
+    const TEAM2_NAME = <?= json_encode($match['teams'][1]['team_name'] ?? 'Team 2') ?>;
     let currentEnd = <?= $match['current_end'] ?>;
     </script>
     <script src="../js/api.js"></script>

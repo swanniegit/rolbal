@@ -29,6 +29,9 @@ const UI = {
         msgDiv.className = `flash flash-${type}`;
         msgDiv.classList.remove('hidden');
 
+        // Scroll into view so user sees the message
+        msgDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
         if (duration > 0) {
             setTimeout(() => msgDiv.classList.add('hidden'), duration);
         }

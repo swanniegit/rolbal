@@ -298,6 +298,38 @@ try {
             ClubMember::setPrimaryClub($playerId, $clubId ?: null);
             ApiResponse::success();
 
+        } elseif ($action === 'update_member_whatsapp') {
+            // Update member's WhatsApp number for scoring integration
+            require_once __DIR__ . '/../includes/WhatsAppScoring.php';
+
+            $clubId = (int) ($_POST['club_id'] ?? 0);
+            $memberId = (int) ($_POST['member_id'] ?? 0);
+            $whatsappNumber = trim($_POST['whatsapp_number'] ?? '');
+
+            if (!$clubId || !Club::canManage($clubId, $playerId)) {
+                ApiResponse::forbidden('Not authorized');
+            }
+            if (!$memberId) {
+                throw new Exception('Member ID required');
+            }
+            if (!ClubMember::isMember($clubId, $memberId)) {
+                throw new Exception('Player is not a club member');
+            }
+
+            if ($whatsappNumber) {
+                // Validate and normalize phone number
+                $normalized = WhatsAppAPI::normalizePhone($whatsappNumber);
+                if (strlen($normalized) < 10 || strlen($normalized) > 15) {
+                    throw new Exception('Invalid phone number format');
+                }
+                WhatsAppScoring::linkPhoneToPlayer($memberId, $normalized);
+            } else {
+                // Clear the WhatsApp number
+                WhatsAppScoring::unlinkPhone($memberId);
+            }
+
+            ApiResponse::success(['whatsapp_number' => $whatsappNumber ? WhatsAppAPI::normalizePhone($whatsappNumber) : null]);
+
         } else {
             ApiResponse::invalidAction();
         }

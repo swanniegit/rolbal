@@ -75,24 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.disabled = true;
         btn.textContent = 'Creating...';
 
-        try {
-            const formData = new FormData(form);
+        const formData = new FormData(form);
+        const data = await API.post('../api/match.php', formData);
 
-            const res = await fetch('../api/match.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                window.location.href = 'score.php?id=' + data.match_id;
-            } else {
-                alert(data.error || 'Failed to create match');
-                btn.disabled = false;
-                btn.textContent = 'Create Match';
-            }
-        } catch (err) {
-            alert('Network error');
+        if (data.success) {
+            window.location.href = 'score.php?id=' + data.match_id;
+        } else {
+            UI.showFlash('error', data.error || 'Failed to create match');
             btn.disabled = false;
             btn.textContent = 'Create Match';
         }

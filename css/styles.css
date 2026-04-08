@@ -725,7 +725,7 @@ body {
 .session-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
 }
 
 .session-item {
@@ -796,6 +796,134 @@ body {
 
 .visibility-toggle[data-public="0"] {
     opacity: 0.4;
+}
+
+/* Session Cards (History Page) */
+.session-card-wrap {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+}
+
+.session-card-wrap:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+.session-card-main {
+    padding: 1rem 1.25rem;
+}
+
+.session-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.session-card-header .badge {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.session-card-header .session-date {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.badge-complete {
+    background: var(--primary-light);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.session-card-main .session-desc {
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+}
+
+.session-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.session-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.session-meta span:first-child {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.session-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transition);
+}
+
+.btn-icon:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--primary);
+}
+
+.btn-icon[title="Continue"] {
+    color: var(--primary);
+}
+
+.btn-icon.btn-delete:hover {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* Progress bar in cards */
+.session-card-main .progress-bar.mini {
+    height: 4px;
+    margin-top: 0.75rem;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.session-card-main .progress-bar.mini .progress-fill {
+    height: 100%;
+    background: var(--primary-light);
+    border-radius: 2px;
+    transition: width 0.3s ease;
 }
 
 /* Empty State */
@@ -1308,11 +1436,17 @@ body {
 
 .manage-member-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
     gap: 0.75rem;
     background: var(--bg);
     border-radius: 8px;
     padding: 0.75rem;
+}
+
+.manage-member-item .member-info {
+    flex: 1;
+    min-width: 150px;
 }
 
 .member-actions {
@@ -1327,6 +1461,27 @@ body {
     border: 1px solid #ccc;
     border-radius: 4px;
     background: white;
+}
+
+/* WhatsApp input for members */
+.member-whatsapp {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.whatsapp-input {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    width: 130px;
+}
+
+.whatsapp-input:focus {
+    outline: none;
+    border-color: var(--primary);
 }
 
 .btn-danger {

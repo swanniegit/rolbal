@@ -162,6 +162,8 @@ Template::pageHead('New Match', ['../css/pages/match-create.css'], '#2d5016', '.
     <script>
     const GAME_TYPES = <?= json_encode($gameTypes) ?>;
     </script>
+    <script src="../js/api.js"></script>
+    <script src="../js/ui.js"></script>
     <script src="../js/match-create.js"></script>
 </body>
 </html>

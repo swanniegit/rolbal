@@ -324,3 +324,61 @@ body {
 }
 
 .hidden { display: none !important; }
+
+/* Victory Modal */
+.victory-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.victory-content {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    max-width: 320px;
+    width: 90%;
+    animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+.victory-trophy {
+    font-size: 4rem;
+    margin-bottom: 0.75rem;
+}
+
+.victory-winner {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #2d5016;
+    margin-bottom: 0.5rem;
+}
+
+.victory-score {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #333;
+    margin-bottom: 1.75rem;
+    letter-spacing: 2px;
+}
+
+.btn-view-match {
+    display: block;
+    padding: 0.9rem;
+    background: #2d5016;
+    color: white;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}

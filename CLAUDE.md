@@ -10,28 +10,28 @@ BowlsTracker is a mobile-first PWA for tracking lawn bowls practice sessions and
 
 ## Production Deployment (PSCP)
 
-**SSH Details:**
-- Host: www451.jnb1.host-h.net
-- Port: 2222
-- Username: bowlsjgeez
-- Password: 6917J489e4Dg51
-- Remote path: public_html/
+**Credentials are in `.env`** (never commit `.env`):
+```
+DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER, DEPLOY_PASS, DEPLOY_PATH
+```
 
 **Deploy single file:**
 ```bash
-cd /c/xampp/htdocs/rolbal && "/c/Program Files/PuTTY/pscp.exe" -P 2222 -pw "6917J489e4Dg51" -batch "path/to/file" "bowlsjgeez@www451.jnb1.host-h.net:public_html/path/to/file"
+source .env && "/c/Program Files/PuTTY/pscp.exe" -P $DEPLOY_PORT -pw "$DEPLOY_PASS" -batch "path/to/file" "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/path/to/file"
 ```
 
 **Examples:**
 ```bash
+source .env
+
 # Deploy a CSS file
-"/c/Program Files/PuTTY/pscp.exe" -P 2222 -pw "6917J489e4Dg51" -batch "css/pages/challenge-play.css" "bowlsjgeez@www451.jnb1.host-h.net:public_html/css/pages/challenge-play.css"
+"/c/Program Files/PuTTY/pscp.exe" -P $DEPLOY_PORT -pw "$DEPLOY_PASS" -batch "css/pages/challenge-play.css" "$DEPLOY_USER@$DEPLOY_HOST:${DEPLOY_PATH}css/pages/challenge-play.css"
 
 # Deploy a JS file
-"/c/Program Files/PuTTY/pscp.exe" -P 2222 -pw "6917J489e4Dg51" -batch "js/challenge.js" "bowlsjgeez@www451.jnb1.host-h.net:public_html/js/challenge.js"
+"/c/Program Files/PuTTY/pscp.exe" -P $DEPLOY_PORT -pw "$DEPLOY_PASS" -batch "js/challenge.js" "$DEPLOY_USER@$DEPLOY_HOST:${DEPLOY_PATH}js/challenge.js"
 
 # Deploy a directory (use -r flag)
-"/c/Program Files/PuTTY/pscp.exe" -r -P 2222 -pw "6917J489e4Dg51" -batch "css/" "bowlsjgeez@www451.jnb1.host-h.net:public_html/css/"
+"/c/Program Files/PuTTY/pscp.exe" -r -P $DEPLOY_PORT -pw "$DEPLOY_PASS" -batch "css/" "$DEPLOY_USER@$DEPLOY_HOST:${DEPLOY_PATH}css/"
 ```
 
 **Note:** The `-batch` flag is required to skip host key confirmation prompts.

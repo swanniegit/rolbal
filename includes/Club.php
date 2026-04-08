@@ -138,7 +138,7 @@ class Club {
     public static function getMembers(int $clubId): array {
         $db = Database::getInstance();
         $stmt = $db->prepare('
-            SELECT p.id, p.name, p.hand, cm.role, cm.joined_at
+            SELECT p.id, p.name, p.hand, p.whatsapp_number, cm.role, cm.joined_at
             FROM club_members cm
             JOIN players p ON cm.player_id = p.id
             WHERE cm.club_id = :club_id

@@ -7,6 +7,7 @@ require_once __DIR__ . '/includes/constants.php';
 require_once __DIR__ . '/includes/Session.php';
 require_once __DIR__ . '/includes/Roll.php';
 require_once __DIR__ . '/includes/Auth.php';
+require_once __DIR__ . '/includes/Template.php';
 
 // Free play limit for anonymous users
 define('FREE_GAMES_PER_MONTH', 3);
@@ -59,18 +60,7 @@ if ($sessionId) {
         }
     }
 }
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d5016">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>BowlsTracker - <?= $session ? 'Game' : 'New Game' ?></title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/styles.css?v=3">
-</head>
+<?php Template::pageHead($session ? 'Game' : 'New Game'); ?>
 <body>
     <div class="app-container">
         <header class="app-header compact">

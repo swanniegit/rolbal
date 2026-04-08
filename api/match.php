@@ -204,6 +204,14 @@ try {
 
             GameMatch::recordEnd($matchId, $endNumber, $scoringTeam, $shots);
             $scores = GameMatch::getScores($matchId);
+
+            // Auto-complete for first_to mode when target reached
+            if ($match['scoring_mode'] === 'first_to' &&
+                ($scores['team1_score'] >= $match['target_score'] || $scores['team2_score'] >= $match['target_score'])) {
+                GameMatch::complete($matchId);
+                $scores['status'] = 'completed';
+            }
+
             ApiResponse::success($scores);
 
         } elseif ($action === 'complete') {

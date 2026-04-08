@@ -123,6 +123,15 @@ Template::pageHead('Manage ' . $club['name'], [], '#2d5016', '../');
                         <div class="member-info">
                             <span class="member-name"><?= htmlspecialchars($member['name']) ?></span>
                             <span class="badge small role-<?= $member['role'] ?>"><?= ucfirst($member['role']) ?></span>
+                            <div class="member-whatsapp">
+                                <input type="tel"
+                                       class="whatsapp-input"
+                                       data-member-id="<?= $member['id'] ?>"
+                                       placeholder="WhatsApp (e.g. 0821234567)"
+                                       value="<?= htmlspecialchars($member['whatsapp_number'] ?? '') ?>"
+                                       maxlength="15">
+                                <button type="button" class="btn-small save-whatsapp" data-member-id="<?= $member['id'] ?>" title="Save WhatsApp">Save</button>
+                            </div>
                         </div>
                         <?php if ($member['role'] !== 'owner'): ?>
                         <div class="member-actions">

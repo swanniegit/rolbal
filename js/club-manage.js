@@ -118,6 +118,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Save WhatsApp number
+    document.querySelectorAll('.save-whatsapp').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const memberId = this.dataset.memberId;
+            const input = document.querySelector(`.whatsapp-input[data-member-id="${memberId}"]`);
+            const whatsappNumber = input.value.trim();
+
+            UI.setButtonLoading(this, true);
+
+            const data = await API.post('../api/club.php', {
+                action: 'update_member_whatsapp',
+                club_id: clubId,
+                member_id: memberId,
+                whatsapp_number: whatsappNumber
+            });
+
+            if (data.success) {
+                UI.showFlash('success', whatsappNumber ? 'WhatsApp number saved' : 'WhatsApp number removed');
+                if (data.whatsapp_number) {
+                    input.value = data.whatsapp_number;
+                }
+            } else {
+                UI.showFlash('error', data.error || 'Failed to save WhatsApp number');
+            }
+
+            UI.setButtonLoading(this, false, 'Save');
+        });
+    });
+
     // Delete club
     const deleteBtn = document.getElementById('deleteClubBtn');
     if (deleteBtn) {

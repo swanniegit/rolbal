@@ -30,3 +30,9 @@ if (DEBUG) {
     error_reporting(0);
     ini_set('display_errors', 0);
 }
+
+// WhatsApp Cloud API
+define('WHATSAPP_VERIFY_TOKEN', Env::get('WHATSAPP_VERIFY_TOKEN', ''));
+define('WHATSAPP_ACCESS_TOKEN', Env::get('WHATSAPP_ACCESS_TOKEN', ''));
+define('WHATSAPP_PHONE_ID', Env::get('WHATSAPP_PHONE_ID', ''));
+define('WHATSAPP_APP_SECRET', Env::get('WHATSAPP_APP_SECRET', ''));

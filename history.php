@@ -48,8 +48,8 @@ Template::pageHead('History');
                         <p class="session-desc"><?= htmlspecialchars($s['description']) ?></p>
                         <?php endif; ?>
                         <div class="session-meta">
-                            <span><?= $s['roll_count'] ?> / <?= $totalBowls ?> bowls</span>
-                            <span><?= $s['total_ends'] ?> ends &times; <?= $s['bowls_per_end'] ?> bowls</span>
+                            <span><?= $s['roll_count'] ?> bowls recorded</span>
+                            <span><?= $s['bowls_per_end'] ?> per end</span>
                         </div>
                         <?php if (!$isComplete): ?>
                         <div class="progress-bar mini">

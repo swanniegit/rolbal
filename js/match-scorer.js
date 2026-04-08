@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success !== false) {
                 updateScoreboard(data);
                 clearSelection();
+            } else if (data.error === 'Match is not live') {
+                await showVictoryFromScores();
             } else {
                 UI.showFlash('error', data.error || 'Failed to record end');
             }
@@ -165,6 +167,31 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update section title
         const h3 = document.querySelector('.score-section h3');
         if (h3) h3.textContent = 'Record End ' + currentEnd;
+
+        // Show victory modal if match was auto-completed (first_to target reached)
+        if (data.status === 'completed') {
+            showVictoryModal(data.team1_score, data.team2_score);
+        }
+    }
+
+    function showVictoryModal(team1Score, team2Score) {
+        const winner = team1Score >= team2Score ? TEAM1_NAME : TEAM2_NAME;
+        document.getElementById('victoryWinner').textContent = winner + ' wins!';
+        document.getElementById('victoryScore').textContent = team1Score + ' – ' + team2Score;
+        document.getElementById('victoryModal').classList.remove('hidden');
+        // Disable all scoring interactions
+        document.querySelectorAll('.team-btn, .shot-btn, #submitEndBtn, #undoBtn, #completeBtn').forEach(btn => {
+            if (btn) btn.disabled = true;
+        });
+    }
+
+    async function showVictoryFromScores() {
+        const data = await API.get('../api/match.php?action=scores&id=' + MATCH_ID);
+        if (data.success !== false) {
+            showVictoryModal(data.team1_score, data.team2_score);
+        } else {
+            UI.redirect('view.php?id=' + MATCH_ID);
+        }
     }
 
     function clearSelection() {
