@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 400" width="360" height="400">
+  <style>
+    .cell { fill: #fff; stroke: #2d5016; stroke-width: 2; }
+    .cell-center { fill: #f5b800; stroke: #2d5016; stroke-width: 2; }
+    .miss { fill: #f0f0f0; stroke: #999; stroke-width: 1; }
+    .label { font-family: -apple-system, sans-serif; font-size: 13px; fill: #1a1a1a; text-anchor: middle; }
+    .label-small { font-family: -apple-system, sans-serif; font-size: 11px; fill: #666; text-anchor: middle; }
+    .miss-label { font-family: -apple-system, sans-serif; font-size: 10px; fill: #666; text-anchor: middle; }
+    .num { font-family: -apple-system, sans-serif; font-size: 11px; fill: #2d5016; font-weight: bold; }
+  </style>
+
+  <!-- Too Long / Ditch - top -->
+  <rect x="30" y="10" width="300" height="35" rx="4" class="miss"/>
+  <text x="180" y="32" class="miss-label">Too Long / Ditch</text>
+  <text x="320" y="32" class="num">1</text>
+
+  <!-- Main grid -->
+  <!-- Row 1: Long -->
+  <rect x="30" y="55" width="95" height="70" rx="6" class="cell"/>
+  <text x="77" y="85" class="label-small">Long</text>
+  <text x="77" y="102" class="label">Left</text>
+  <text x="115" y="70" class="num">2</text>
+
+  <rect x="132" y="55" width="95" height="70" rx="6" class="cell"/>
+  <text x="180" y="85" class="label-small">Long</text>
+  <text x="180" y="102" class="label">Centre</text>
+  <text x="217" y="70" class="num">3</text>
+
+  <rect x="234" y="55" width="95" height="70" rx="6" class="cell"/>
+  <text x="282" y="85" class="label-small">Long</text>
+  <text x="282" y="102" class="label">Right</text>
+  <text x="319" y="70" class="num">4</text>
+
+  <!-- Row 2: Level -->
+  <rect x="30" y="132" width="95" height="70" rx="6" class="cell"/>
+  <text x="77" y="162" class="label-small">Level</text>
+  <text x="77" y="179" class="label">Left</text>
+  <text x="115" y="147" class="num">5</text>
+
+  <rect x="132" y="132" width="95" height="70" rx="6" class="cell-center"/>
+  <text x="180" y="172" class="label" style="font-weight:bold">Centre</text>
+  <text x="217" y="147" class="num">6</text>
+
+  <rect x="234" y="132" width="95" height="70" rx="6" class="cell"/>
+  <text x="282" y="162" class="label-small">Level</text>
+  <text x="282" y="179" class="label">Right</text>
+  <text x="319" y="147" class="num">7</text>
+
+  <!-- Row 3: Short -->
+  <rect x="30" y="209" width="95" height="70" rx="6" class="cell"/>
+  <text x="77" y="239" class="label-small">Short</text>
+  <text x="77" y="256" class="label">Left</text>
+  <text x="115" y="224" class="num">8</text>
+
+  <rect x="132" y="209" width="95" height="70" rx="6" class="cell"/>
+  <text x="180" y="239" class="label-small">Short</text>
+  <text x="180" y="256" class="label">Centre</text>
+  <text x="217" y="224" class="num">9</text>
+
+  <rect x="234" y="209" width="95" height="70" rx="6" class="cell"/>
+  <text x="282" y="239" class="label-small">Short</text>
+  <text x="282" y="256" class="label">Right</text>
+  <text x="319" y="224" class="num">10</text>
+
+  <!-- Too Short - bottom -->
+  <rect x="30" y="289" width="300" height="35" rx="4" class="miss"/>
+  <text x="180" y="311" class="miss-label">Too Short</text>
+  <text x="320" y="311" class="num">11</text>
+
+  <!-- Side misses -->
+  <rect x="5" y="55" width="20" height="224" rx="4" class="miss"/>
+  <text x="15" y="170" class="miss-label" transform="rotate(-90 15 170)">Too Far Left</text>
+  <text x="15" y="270" class="num" style="font-size:9px">12</text>
+
+  <rect x="334" y="55" width="20" height="224" rx="4" class="miss"/>
+  <text x="344" y="170" class="miss-label" transform="rotate(90 344 170)">Too Far Right</text>
+  <text x="344" y="270" class="num" style="font-size:9px">13</text>
+
+  <!-- Legend -->
+  <text x="180" y="355" class="label-small" style="font-size:12px">Reply with a number (1-13)</text>
+  <text x="180" y="375" class="label-small" style="font-size:11px; fill:#999">or tap Positions below</text>
+</svg>
