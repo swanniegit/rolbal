@@ -12,6 +12,9 @@ require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/Upload.php';
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/ApiResponse.php';
+require_once __DIR__ . '/../includes/Cors.php';
+
+Cors::handle();
 
 try {
     $method = $_SERVER['REQUEST_METHOD'];

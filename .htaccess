@@ -5,6 +5,13 @@
     Require all denied
 </FilesMatch>
 
+# Pass Authorization header through to PHP (Apache CGI/FastCGI strips it by default)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
 # Block access to includes directory (PHP files should only be included, not accessed directly)
 <IfModule mod_rewrite.c>
     RewriteEngine On

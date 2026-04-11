@@ -109,9 +109,11 @@ body {
 }
 
 .logo {
-    width: 120px;
-    height: auto;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    width: 140px;
+    height: 140px;
+    border-radius: 28px;
+    object-fit: cover;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
 }
 
 .app-title {

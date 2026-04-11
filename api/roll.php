@@ -2,8 +2,8 @@
 /**
  * Roll API
  *
- * Security: CSRF validation on state-changing operations
- * Authorization: Session ownership checks on all modifications
+ * Supports both browser (FormData + CSRF + session auth)
+ * and mobile (JSON body + Bearer token auth, no CSRF).
  */
 
 require_once __DIR__ . '/../includes/Roll.php';
@@ -11,9 +11,23 @@ require_once __DIR__ . '/../includes/RollValidator.php';
 require_once __DIR__ . '/../includes/Session.php';
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/ApiResponse.php';
+require_once __DIR__ . '/../includes/Cors.php';
+
+Cors::handle();
 
 /**
- * Verify current user owns the session (or session is anonymous and user is anonymous)
+ * Parse request body — JSON (mobile) or $_POST (browser).
+ */
+function parseBody(): array {
+    $ct = $_SERVER['CONTENT_TYPE'] ?? '';
+    if (str_contains($ct, 'application/json')) {
+        return json_decode(file_get_contents('php://input'), true) ?? [];
+    }
+    return $_POST;
+}
+
+/**
+ * Verify the caller owns the session (or is an anonymous user on an anonymous session).
  */
 function verifySessionOwnership(int $sessionId): void {
     $session = Session::find($sessionId);
@@ -21,15 +35,14 @@ function verifySessionOwnership(int $sessionId): void {
         ApiResponse::notFound('Session not found');
     }
 
-    $playerId = Auth::id();
+    $playerId       = Auth::idFromRequest();
     $sessionOwnerId = $session['player_id'];
 
-    // Allow if: anonymous session with anonymous user, OR authenticated owner
     if ($sessionOwnerId === null && $playerId === null) {
-        return; // Anonymous session, anonymous user - allowed
+        return; // Anonymous session + anonymous user
     }
     if ($sessionOwnerId !== null && $sessionOwnerId == $playerId) {
-        return; // Owner matches - allowed
+        return; // Owner matches
     }
 
     ApiResponse::forbidden('Not authorized to modify this session');
@@ -37,25 +50,27 @@ function verifySessionOwnership(int $sessionId): void {
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // CSRF validation
-        $csrf = $_POST['csrf_token'] ?? '';
-        if (!Auth::validateCsrfToken($csrf)) {
-            ApiResponse::forbidden('Invalid security token');
+        $input    = parseBody();
+        $isMobile = Auth::hasBearerHeader();
+
+        if (!$isMobile) {
+            $csrf = $input['csrf_token'] ?? '';
+            if (!Auth::validateCsrfToken($csrf)) {
+                ApiResponse::forbidden('Invalid security token');
+            }
         }
 
-        $sessionId = isset($_POST['session_id']) ? (int)$_POST['session_id'] : 0;
-        $endNumber = isset($_POST['end_number']) ? (int)$_POST['end_number'] : 1;
-        $endLength = isset($_POST['end_length']) ? (int)$_POST['end_length'] : 0;
-        $result = isset($_POST['result']) ? (int)$_POST['result'] : 0;
-        $toucher = isset($_POST['toucher']) ? (int)$_POST['toucher'] : 0;
+        $sessionId = isset($input['session_id']) ? (int)$input['session_id'] : 0;
+        $endNumber = isset($input['end_number']) ? (int)$input['end_number'] : 1;
+        $endLength = isset($input['end_length']) ? (int)$input['end_length'] : 0;
+        $result    = isset($input['result'])     ? (int)$input['result']     : 0;
+        $toucher   = isset($input['toucher'])    ? (int)$input['toucher']    : 0;
 
         if (!$sessionId) {
             throw new Exception('Session ID required');
         }
 
-        // Verify ownership before creating roll
         verifySessionOwnership($sessionId);
-
         RollValidator::validateEndLength($endLength);
         RollValidator::validateResult($result);
 
@@ -70,14 +85,12 @@ try {
             throw new Exception('Session ID required');
         }
 
-        // Check session visibility for viewing rolls
         $session = Session::find($sessionId);
         if (!$session) {
             ApiResponse::notFound('Session not found');
         }
 
-        $playerId = Auth::id();
-        // Allow viewing if: public, anonymous session, or owner
+        $playerId = Auth::idFromRequest();
         if (!$session['is_public'] && $session['player_id'] !== null && $session['player_id'] != $playerId) {
             ApiResponse::forbidden('Cannot view this session');
         }
@@ -86,17 +99,19 @@ try {
         ApiResponse::success(['rolls' => $rolls]);
 
     } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-        // CSRF validation via header
-        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!Auth::validateCsrfToken($csrf)) {
-            ApiResponse::forbidden('Invalid security token');
+        $isMobile = Auth::hasBearerHeader();
+
+        if (!$isMobile) {
+            $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            if (!Auth::validateCsrfToken($csrf)) {
+                ApiResponse::forbidden('Invalid security token');
+            }
         }
 
         $sessionId = isset($_GET['session_id']) ? (int)$_GET['session_id'] : 0;
-        $undo = isset($_GET['undo']);
+        $undo      = isset($_GET['undo']);
 
         if ($undo && $sessionId) {
-            // Verify ownership before undo
             verifySessionOwnership($sessionId);
             Roll::undoLast($sessionId);
             ApiResponse::success();
@@ -105,7 +120,6 @@ try {
             if (!$id) {
                 throw new Exception('Roll ID required');
             }
-            // Get roll's session to verify ownership
             $roll = Roll::find($id);
             if (!$roll) {
                 ApiResponse::notFound('Roll not found');

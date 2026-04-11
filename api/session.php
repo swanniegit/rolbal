@@ -2,85 +2,104 @@
 /**
  * Session API
  *
- * Security: CSRF validation on state-changing operations
- * Authorization: Ownership checks on all operations
+ * Supports both browser (FormData + CSRF + session auth)
+ * and mobile (JSON body + Bearer token auth, no CSRF).
  */
 
 require_once __DIR__ . '/../includes/Session.php';
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/ApiResponse.php';
+require_once __DIR__ . '/../includes/Cors.php';
+
+Cors::handle();
+
+/**
+ * Parse request body — JSON (mobile) or $_POST (browser).
+ */
+function parseBody(): array {
+    $ct = $_SERVER['CONTENT_TYPE'] ?? '';
+    if (str_contains($ct, 'application/json')) {
+        return json_decode(file_get_contents('php://input'), true) ?? [];
+    }
+    return $_POST;
+}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // CSRF validation for state-changing operation
-        $csrf = $_POST['csrf_token'] ?? '';
-        if (!Auth::validateCsrfToken($csrf)) {
-            ApiResponse::forbidden('Invalid security token');
+        $input = parseBody();
+        $isMobile = Auth::hasBearerHeader();
+
+        // CSRF required for browser session auth only
+        if (!$isMobile) {
+            $csrf = $input['csrf_token'] ?? '';
+            if (!Auth::validateCsrfToken($csrf)) {
+                ApiResponse::forbidden('Invalid security token');
+            }
         }
 
-        $hand = $_POST['hand'] ?? '';
-        $date = $_POST['session_date'] ?? '';
-        $bowlsPerEnd = isset($_POST['bowls_per_end']) ? (int)$_POST['bowls_per_end'] : 4;
-        $totalEnds = isset($_POST['total_ends']) ? (int)$_POST['total_ends'] : 15;
-        $description = $_POST['description'] ?? null;
+        $hand        = $input['hand']          ?? '';
+        $date        = $input['session_date']  ?? '';
+        $bowlsPerEnd = isset($input['bowls_per_end']) ? (int)$input['bowls_per_end'] : 4;
+        $totalEnds   = isset($input['total_ends'])    ? (int)$input['total_ends']    : 15;
+        $description = $input['description']   ?? null;
 
         if (!in_array($hand, ['L', 'R'])) {
             throw new Exception('Invalid hand selection');
         }
-
         if (!$date) {
             throw new Exception('Date is required');
         }
-
         if (!in_array($bowlsPerEnd, [2, 3, 4])) {
             throw new Exception('Bowls per end must be 2, 3, or 4');
         }
-
         if ($totalEnds < 1 || $totalEnds > 30) {
             throw new Exception('Invalid number of ends');
         }
 
-        $playerId = Auth::id();
+        $playerId = Auth::idFromRequest();
         $id = Session::create($hand, $date, $bowlsPerEnd, $totalEnds, $description, $playerId);
 
         ApiResponse::success(['id' => $id]);
 
     } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $playerId = Auth::id();
+        $id       = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $playerId = Auth::idFromRequest();
 
         if ($id) {
             $session = Session::find($id);
             if (!$session) {
                 ApiResponse::notFound('Session not found');
             }
-            // Allow viewing if: public, anonymous session, or owner
             if (!$session['is_public'] && $session['player_id'] !== null && $session['player_id'] != $playerId) {
                 ApiResponse::forbidden('Cannot view this session');
             }
             ApiResponse::success(['session' => $session]);
+        } elseif (isset($_GET['mine']) && $playerId) {
+            $sessions = Session::forPlayer($playerId);
+            ApiResponse::success(['sessions' => $sessions]);
         } else {
-            // List sessions: only public sessions or user's own sessions
             $sessions = Session::allPublic();
             ApiResponse::success(['sessions' => $sessions]);
         }
 
     } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-        // CSRF validation via header for DELETE requests
-        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!Auth::validateCsrfToken($csrf)) {
-            ApiResponse::forbidden('Invalid security token');
+        $isMobile = Auth::hasBearerHeader();
+
+        if (!$isMobile) {
+            $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            if (!Auth::validateCsrfToken($csrf)) {
+                ApiResponse::forbidden('Invalid security token');
+            }
         }
 
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $id       = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $playerId = Auth::idFromRequest();
 
         if (!$id) {
             throw new Exception('Session ID required');
         }
 
-        $playerId = Auth::id();
         $result = Session::delete($id, $playerId);
-
         if (!$result) {
             ApiResponse::forbidden('Cannot delete this session');
         }
@@ -88,22 +107,23 @@ try {
         ApiResponse::success();
 
     } elseif ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input    = json_decode(file_get_contents('php://input'), true) ?? [];
+        $isMobile = Auth::hasBearerHeader();
 
-        // CSRF validation
-        $csrf = $input['csrf_token'] ?? '';
-        if (!Auth::validateCsrfToken($csrf)) {
-            ApiResponse::forbidden('Invalid security token');
+        if (!$isMobile) {
+            $csrf = $input['csrf_token'] ?? '';
+            if (!Auth::validateCsrfToken($csrf)) {
+                ApiResponse::forbidden('Invalid security token');
+            }
         }
 
-        $id = $input['id'] ?? 0;
-        $action = $input['action'] ?? '';
+        $id       = $input['id']     ?? 0;
+        $action   = $input['action'] ?? '';
+        $playerId = Auth::idFromRequest();
 
         if (!$id) {
             throw new Exception('Session ID required');
         }
-
-        $playerId = Auth::id();
         if (!$playerId) {
             ApiResponse::unauthorized();
         }
@@ -114,7 +134,7 @@ try {
                 ApiResponse::forbidden('Cannot modify this session');
             }
             $session = Session::find($id);
-            ApiResponse::success(['is_public' => (bool) $session['is_public']]);
+            ApiResponse::success(['is_public' => (bool)$session['is_public']]);
         } else {
             ApiResponse::error('Invalid action');
         }

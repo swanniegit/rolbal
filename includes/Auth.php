@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/Player.php';
+require_once __DIR__ . '/Jwt.php';
 
 class Auth {
 
@@ -87,6 +88,59 @@ class Auth {
     public static function flash(string $type, string $message): void {
         self::init();
         $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+    }
+
+    /**
+     * Returns true if a Bearer Authorization header is present, regardless of JWT validity.
+     * Use this for CSRF bypass decisions — presence of the header means it's a programmatic
+     * (non-browser) request, which is not subject to CSRF.
+     * Authentication is still enforced separately via idFromRequest().
+     */
+    public static function hasBearerHeader(): bool {
+        return str_starts_with(self::authorizationHeader(), 'Bearer ');
+    }
+
+    private static function authorizationHeader(): string {
+        $header = $_SERVER['HTTP_AUTHORIZATION']
+               ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+               ?? '';
+
+        if (empty($header) && function_exists('apache_request_headers')) {
+            $all    = apache_request_headers();
+            $header = $all['Authorization'] ?? $all['authorization'] ?? '';
+        }
+
+        return $header;
+    }
+
+    /**
+     * Extract player ID from a Bearer JWT in the Authorization header.
+     * Returns null if no header present, token invalid, or expired.
+     * Does NOT start a PHP session.
+     */
+    public static function fromBearer(): ?int {
+        $header = self::authorizationHeader();
+
+        if (!str_starts_with($header, 'Bearer ')) {
+            return null;
+        }
+
+        try {
+            $payload = Jwt::decode(substr($header, 7), JWT_SECRET);
+            $id = (int) ($payload['sub'] ?? 0);
+            return $id > 0 ? $id : null;
+        } catch (RuntimeException) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the authenticated player ID regardless of auth method.
+     * Checks Bearer token first (no session overhead), then falls back to session.
+     * Use this in API files that the mobile app calls.
+     */
+    public static function idFromRequest(): ?int {
+        return self::fromBearer() ?? self::id();
     }
 
     public static function getFlash(): ?array {

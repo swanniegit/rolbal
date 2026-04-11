@@ -8,11 +8,11 @@ require_once __DIR__ . '/env.php';
 Env::load();
 
 // Database
-define('DB_HOST', Env::get('DB_HOST', 'localhost'));
-define('DB_NAME', Env::get('DB_NAME', 'rolbal'));
-define('DB_USER', Env::get('DB_USER', 'root'));
-define('DB_PASS', Env::get('DB_PASS', ''));
-define('DB_CHARSET', Env::get('DB_CHARSET', 'utf8mb4'));
+define('DB_HOST', 'sql40.jnb2.host-h.net');
+define('DB_NAME', 'rolbal');
+define('DB_USER', 'myrolbal');
+define('DB_PASS', '4f7J6C7wj40081');
+define('DB_CHARSET', 'utf8mb4');
 
 // App
 define('APP_NAME', Env::get('APP_NAME', 'BowlsTracker'));
@@ -30,6 +30,9 @@ if (DEBUG) {
     error_reporting(0);
     ini_set('display_errors', 0);
 }
+
+// Mobile JWT — set JWT_SECRET in .env for production (min 32 chars)
+define('JWT_SECRET', Env::get('JWT_SECRET', 'local-dev-secret-change-in-production-!!'));
 
 // WhatsApp Cloud API
 define('WHATSAPP_VERIFY_TOKEN', Env::get('WHATSAPP_VERIFY_TOKEN', ''));

@@ -18,8 +18,8 @@ $playerName = Auth::name();
     <title>BowlsTracker - Lawn Bowls Stats</title>
 
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
-    <link rel="apple-touch-icon" href="assets/logo.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -36,7 +36,7 @@ $playerName = Auth::name();
             </div>
             <?php endif; ?>
             <div class="logo-container">
-                <img src="assets/logo.svg" alt="Yellow Archer" class="logo">
+                <img src="assets/logo-192.png" alt="BowlsTracker" class="logo">
             </div>
             <h1 class="app-title">BowlsTracker</h1>
             <p class="app-tagline">Lawn Bowls Statistics</p>

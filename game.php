@@ -60,6 +60,7 @@ if ($sessionId) {
         }
     }
 }
+?>
 <?php Template::pageHead($session ? 'Game' : 'New Game'); ?>
 <body>
     <div class="app-container">

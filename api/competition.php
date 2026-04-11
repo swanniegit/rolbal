@@ -37,11 +37,16 @@ require_once __DIR__ . '/../includes/CompetitionRoundRobin.php';
 require_once __DIR__ . '/../includes/CompetitionBracket.php';
 require_once __DIR__ . '/../includes/ClubMember.php';
 require_once __DIR__ . '/../includes/GameMatch.php';
+require_once __DIR__ . '/../includes/Cors.php';
+Cors::handle();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
 // ========== GET Requests ==========
 if ($method === 'GET') {
+    $playerId = Auth::idFromRequest();
+    if (!$playerId) ApiResponse::unauthorized();
+
     $action = $_GET['action'] ?? '';
 
     switch ($action) {
@@ -51,12 +56,6 @@ if ($method === 'GET') {
                 ApiResponse::error('club_id required', 400);
             }
 
-            // Require login for viewing club competitions
-            if (!Auth::check()) {
-                ApiResponse::unauthorized();
-            }
-
-            $playerId = Auth::id();
             if (!ClubMember::isMember($clubId, $playerId)) {
                 ApiResponse::forbidden('Not a club member');
             }
@@ -74,16 +73,12 @@ if ($method === 'GET') {
                 ApiResponse::error('id required', 400);
             }
 
-            if (!Auth::check()) {
-                ApiResponse::unauthorized();
-            }
-
             $competition = Competition::getWithDetails($id);
             if (!$competition) {
                 ApiResponse::notFound('Competition not found');
             }
 
-            if (!Competition::canView(Auth::id(), $id)) {
+            if (!Competition::canView($playerId, $id)) {
                 ApiResponse::forbidden('Not a club member');
             }
 
@@ -96,11 +91,7 @@ if ($method === 'GET') {
                 ApiResponse::error('id required', 400);
             }
 
-            if (!Auth::check()) {
-                ApiResponse::unauthorized();
-            }
-
-            if (!Competition::canView(Auth::id(), $id)) {
+            if (!Competition::canView($playerId, $id)) {
                 ApiResponse::forbidden('Not a club member');
             }
 
@@ -115,11 +106,7 @@ if ($method === 'GET') {
                 ApiResponse::error('id required', 400);
             }
 
-            if (!Auth::check()) {
-                ApiResponse::unauthorized();
-            }
-
-            if (!Competition::canView(Auth::id(), $id)) {
+            if (!Competition::canView($playerId, $id)) {
                 ApiResponse::forbidden('Not a club member');
             }
 
@@ -140,11 +127,7 @@ if ($method === 'GET') {
                 ApiResponse::error('id required', 400);
             }
 
-            if (!Auth::check()) {
-                ApiResponse::unauthorized();
-            }
-
-            if (!Competition::canView(Auth::id(), $id)) {
+            if (!Competition::canView($playerId, $id)) {
                 ApiResponse::forbidden('Not a club member');
             }
 
@@ -158,11 +141,7 @@ if ($method === 'GET') {
                 ApiResponse::error('id required', 400);
             }
 
-            if (!Auth::check()) {
-                ApiResponse::unauthorized();
-            }
-
-            if (!Competition::canView(Auth::id(), $id)) {
+            if (!Competition::canView($playerId, $id)) {
                 ApiResponse::forbidden('Not a club member');
             }
 
@@ -176,11 +155,7 @@ if ($method === 'GET') {
                 ApiResponse::error('id required', 400);
             }
 
-            if (!Auth::check()) {
-                ApiResponse::unauthorized();
-            }
-
-            if (!Competition::canView(Auth::id(), $id)) {
+            if (!Competition::canView($playerId, $id)) {
                 ApiResponse::forbidden('Not a club member');
             }
 
@@ -195,11 +170,7 @@ if ($method === 'GET') {
                 ApiResponse::error('id required', 400);
             }
 
-            if (!Auth::check()) {
-                ApiResponse::unauthorized();
-            }
-
-            if (!Competition::canView(Auth::id(), $id)) {
+            if (!Competition::canView($playerId, $id)) {
                 ApiResponse::forbidden('Not a club member');
             }
 
@@ -219,17 +190,15 @@ if ($method === 'GET') {
 
 // ========== POST Requests ==========
 elseif ($method === 'POST') {
-    if (!Auth::check()) {
-        ApiResponse::unauthorized();
-    }
-
-    $playerId = Auth::id();
+    $playerId = Auth::idFromRequest();
+    if (!$playerId) ApiResponse::unauthorized();
+    $isMobile = Auth::hasBearerHeader();
     $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-
-    // CSRF validation for all POST actions
-    $csrf = $data['csrf_token'] ?? '';
-    if (!Auth::validateCsrfToken($csrf)) {
-        ApiResponse::forbidden('Invalid security token');
+    if (!$isMobile) {
+        $csrf = $data['csrf_token'] ?? '';
+        if (!Auth::validateCsrfToken($csrf)) {
+            ApiResponse::forbidden('Invalid security token');
+        }
     }
 
     $action = $data['action'] ?? '';
@@ -598,22 +567,22 @@ elseif ($method === 'POST') {
 
 // ========== DELETE Requests ==========
 elseif ($method === 'DELETE') {
-    // CSRF validation via header
-    $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    if (!Auth::validateCsrfToken($csrf)) {
-        ApiResponse::forbidden('Invalid security token');
+    $isMobile = Auth::hasBearerHeader();
+    if (!$isMobile) {
+        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!Auth::validateCsrfToken($csrf)) {
+            ApiResponse::forbidden('Invalid security token');
+        }
     }
-
-    if (!Auth::check()) {
-        ApiResponse::unauthorized();
-    }
+    $playerId = Auth::idFromRequest();
+    if (!$playerId) ApiResponse::unauthorized();
 
     $id = (int)($_GET['id'] ?? 0);
     if (!$id) {
         ApiResponse::error('id required', 400);
     }
 
-    if (!Competition::canManage(Auth::id(), $id)) {
+    if (!Competition::canManage($playerId, $id)) {
         ApiResponse::forbidden('Not authorized');
     }
 

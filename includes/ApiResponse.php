@@ -50,10 +50,11 @@ class ApiResponse {
     }
 
     /**
-     * Require authenticated user - returns player ID or sends 401 response
+     * Require authenticated user — checks Bearer token (mobile) OR session (web).
+     * Returns player ID or sends 401.
      */
     public static function requireAuth(): int {
-        $playerId = Auth::id();
+        $playerId = Auth::idFromRequest();
         if (!$playerId) {
             self::unauthorized();
         }
