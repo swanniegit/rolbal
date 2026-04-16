@@ -27,6 +27,14 @@ class Challenge {
 
     const TOUCHER_BONUS = 5;
 
+    // Trail & Rest drill scoring
+    const TRAIL_REST_SCORE_MAP = [
+        30 => 3,  // Successful trail
+        31 => 2,  // Resting touch
+        32 => 1,  // Within mat width
+        33 => 0,  // None
+    ];
+
     public static function all(bool $activeOnly = true): array {
         $db = Database::getInstance();
 
@@ -75,10 +83,10 @@ class Challenge {
         // Calculate totals
         $totalBowls = 0;
         $maxScore = 0;
+        $maxPerBowl = self::getMaxScorePerBowl($challenge['scoring_type'] ?? 'standard');
         foreach ($challenge['sequences'] as $seq) {
             $totalBowls += $seq['bowl_count'];
-            // Max score is 10 (Centre) + 5 (Toucher bonus) per bowl
-            $maxScore += $seq['bowl_count'] * (self::SCORE_MAP[8] + self::TOUCHER_BONUS);
+            $maxScore += $seq['bowl_count'] * $maxPerBowl;
         }
         $challenge['total_bowls'] = $totalBowls;
         $challenge['max_possible_score'] = $maxScore;
@@ -86,7 +94,10 @@ class Challenge {
         return $challenge;
     }
 
-    public static function calculateScore(int $result, int $toucher): int {
+    public static function calculateScore(int $result, int $toucher, string $scoringType = 'standard'): int {
+        if ($scoringType === 'trail_rest') {
+            return self::TRAIL_REST_SCORE_MAP[$result] ?? 0;
+        }
         $score = self::SCORE_MAP[$result] ?? 0;
         if ($toucher) {
             $score += self::TOUCHER_BONUS;
@@ -94,7 +105,10 @@ class Challenge {
         return $score;
     }
 
-    public static function getMaxScorePerBowl(): int {
+    public static function getMaxScorePerBowl(string $scoringType = 'standard'): int {
+        if ($scoringType === 'trail_rest') {
+            return 3;
+        }
         return self::SCORE_MAP[8] + self::TOUCHER_BONUS;
     }
 
@@ -142,7 +156,7 @@ class Challenge {
             $challenge['best_score'] = self::getBestScoreForPlayer($challenge['id'], $playerId);
             $challenge['active_attempt'] = self::getActiveAttemptForPlayer($challenge['id'], $playerId);
             // Calculate max possible score
-            $challenge['max_possible_score'] = ($challenge['total_bowls'] ?? 0) * self::getMaxScorePerBowl();
+            $challenge['max_possible_score'] = ($challenge['total_bowls'] ?? 0) * self::getMaxScorePerBowl($challenge['scoring_type'] ?? 'standard');
         }
 
         return $challenges;

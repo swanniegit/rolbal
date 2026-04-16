@@ -136,3 +136,18 @@ INSERT INTO challenge_sequences (challenge_id, sequence_order, end_length, deliv
 (@challenge_id, 2, 9, 13, 12, '3/4 Jack - Backhand'),
 (@challenge_id, 3, 10, 14, 12, '2/4 Jack - Forehand'),
 (@challenge_id, 4, 11, 13, 12, 'Short Jack - Backhand');
+
+-- ============================================
+-- Challenge: "Trail & Rest Drill"
+-- Weight control drill: touch/trail the jack or rest dead on a target bowl
+-- Based on "Why Most Bowlers Struggle with Weight Control"
+-- ============================================
+
+INSERT INTO challenges (name, description, difficulty, scoring_type) VALUES
+('Trail & Rest Drill', 'Weight control drill. Place the jack at medium length with a target bowl 3m beyond it. For each bowl aim to: TOUCH the jack, TRAIL it gently (within 50cm), or REST DEAD against the target bowl. 8 bowls total — track how many times you achieve each goal.', 'intermediate', 'trail_rest');
+
+SET @challenge_id = LAST_INSERT_ID();
+
+INSERT INTO challenge_sequences (challenge_id, sequence_order, end_length, delivery, bowl_count, description) VALUES
+(@challenge_id, 1, 10, 14, 4, 'Middle Length - Forehand'),
+(@challenge_id, 2, 10, 13, 4, 'Middle Length - Backhand');

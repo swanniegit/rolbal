@@ -148,7 +148,27 @@ Template::pageHead($challenge['name'], ['../css/pages/challenge-play.css'], '#2d
                 <h2 id="bowlHeader">Bowl <?= $currentBowlInSeq ?></h2>
             </div>
 
-            <!-- Result Grid -->
+            <!-- Result Input -->
+            <?php if ($challenge['scoring_type'] === 'trail_rest'): ?>
+            <div class="trail-rest-options" id="stepResult">
+                <button type="button" class="btn-trail-rest btn-trail" data-value="30">
+                    <span class="trail-pts">3 pts</span>
+                    <span class="trail-label">Successful Trail</span>
+                </button>
+                <button type="button" class="btn-trail-rest btn-touch" data-value="31">
+                    <span class="trail-pts">2 pts</span>
+                    <span class="trail-label">Resting Touch</span>
+                </button>
+                <button type="button" class="btn-trail-rest btn-near" data-value="32">
+                    <span class="trail-pts">1 pt</span>
+                    <span class="trail-label">Within Mat Width</span>
+                </button>
+                <button type="button" class="btn-trail-rest btn-none" data-value="33">
+                    <span class="trail-pts">0 pts</span>
+                    <span class="trail-label">None</span>
+                </button>
+            </div>
+            <?php else: ?>
             <div class="roll-step" id="stepResult">
                 <div class="result-row">
                     <div class="green-container">
@@ -174,6 +194,7 @@ Template::pageHead($challenge['name'], ['../css/pages/challenge-play.css'], '#2d
                     <button type="button" class="btn-toucher" id="toucherBtn">Toucher</button>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- Action Bar -->
             <div class="action-bar">
@@ -192,6 +213,7 @@ Template::pageHead($challenge['name'], ['../css/pages/challenge-play.css'], '#2d
             <input type="hidden" id="sequencesJson" value='<?= json_encode($sequences) ?>'>
             <input type="hidden" id="currentRollCount" value="<?= $rollCount ?>">
             <input type="hidden" id="currentTotalScore" value="<?= $totalScore ?>">
+            <input type="hidden" id="scoringType" value="<?= htmlspecialchars($challenge['scoring_type']) ?>">
             <?php endif; ?>
         </main>
     </div>

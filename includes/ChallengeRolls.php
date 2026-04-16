@@ -8,7 +8,7 @@ require_once __DIR__ . '/Challenge.php';
 
 class ChallengeRolls {
 
-    public static function addRoll(int $attemptId, int $sessionId, int $totalScore, int $endLength, int $delivery, int $result, int $toucher = 0): array {
+    public static function addRoll(int $attemptId, int $sessionId, int $totalScore, int $endLength, int $delivery, int $result, int $toucher = 0, string $scoringType = 'standard'): array {
         $db = Database::getInstance();
 
         // Use transaction to ensure roll insert + score update are atomic
@@ -38,7 +38,7 @@ class ChallengeRolls {
             $rollId = (int) $db->lastInsertId();
 
             // Calculate score for this roll
-            $score = Challenge::calculateScore($result, $toucher);
+            $score = Challenge::calculateScore($result, $toucher, $scoringType);
 
             // Update total score
             $stmt = $db->prepare('
@@ -65,7 +65,7 @@ class ChallengeRolls {
         }
     }
 
-    public static function undoLastRoll(int $attemptId, int $sessionId): bool {
+    public static function undoLastRoll(int $attemptId, int $sessionId, string $scoringType = 'standard'): bool {
         $db = Database::getInstance();
 
         // Get last roll (outside transaction for read)
@@ -83,7 +83,7 @@ class ChallengeRolls {
         }
 
         // Calculate score to subtract
-        $score = Challenge::calculateScore($lastRoll['result'], $lastRoll['toucher']);
+        $score = Challenge::calculateScore($lastRoll['result'], $lastRoll['toucher'], $scoringType);
 
         // Use transaction to ensure roll delete + score update are atomic
         $db->beginTransaction();

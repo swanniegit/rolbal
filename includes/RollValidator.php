@@ -14,7 +14,8 @@ class RollValidator {
     // Valid result position codes
     const VALID_RESULTS = [
         1, 2, 3, 4, 5, 6, 7, 8, 12,  // Grid positions (1-8, 12=Centre)
-        20, 21, 22, 23               // Miss positions
+        20, 21, 22, 23,              // Miss positions
+        30, 31, 32, 33,              // Trail & Rest drill: trail, resting touch, within mat width, none
     ];
 
     // Valid scoring teams for matches

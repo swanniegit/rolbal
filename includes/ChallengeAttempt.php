@@ -141,6 +141,9 @@ class ChallengeAttempt {
             throw new Exception('Attempt already completed');
         }
 
+        $challenge = Challenge::find($attempt['challenge_id']);
+        $scoringType = $challenge['scoring_type'] ?? 'standard';
+
         return ChallengeRolls::addRoll(
             $attemptId,
             $attempt['session_id'],
@@ -148,7 +151,8 @@ class ChallengeAttempt {
             $endLength,
             $delivery,
             $result,
-            $toucher
+            $toucher,
+            $scoringType
         );
     }
 
@@ -162,7 +166,10 @@ class ChallengeAttempt {
             return false;
         }
 
-        return ChallengeRolls::undoLastRoll($attemptId, $attempt['session_id']);
+        $challenge = Challenge::find($attempt['challenge_id']);
+        $scoringType = $challenge['scoring_type'] ?? 'standard';
+
+        return ChallengeRolls::undoLastRoll($attemptId, $attempt['session_id'], $scoringType);
     }
 
     // ========== Progress (delegated to ChallengeProgress) ==========

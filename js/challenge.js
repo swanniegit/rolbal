@@ -35,6 +35,7 @@ function initChallengeGame(attemptId) {
     const sequences = JSON.parse(document.getElementById('sequencesJson').value);
     const totalBowls = parseInt(document.getElementById('totalBowls').value);
     const maxScore = parseInt(document.getElementById('maxScore').value);
+    const scoringType = document.getElementById('scoringType')?.value || 'standard';
 
     let rollCount = parseInt(document.getElementById('currentRollCount').value);
     let totalScore = parseInt(document.getElementById('currentTotalScore').value);
@@ -239,26 +240,32 @@ function initChallengeGame(attemptId) {
         }
     }
 
-    // Event listeners for position buttons
-    document.querySelectorAll('.btn-pos').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const result = parseInt(btn.dataset.value);
-            saveRoll(result);
+    if (scoringType === 'trail_rest') {
+        // Trail & Rest drill: big radio-style buttons
+        document.querySelectorAll('.btn-trail-rest').forEach(btn => {
+            btn.addEventListener('click', () => {
+                saveRoll(parseInt(btn.dataset.value));
+            });
         });
-    });
-
-    // Event listeners for miss buttons
-    document.querySelectorAll('.btn-miss').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const result = parseInt(btn.dataset.value);
-            saveRoll(result);
+    } else {
+        // Standard grid
+        document.querySelectorAll('.btn-pos').forEach(btn => {
+            btn.addEventListener('click', () => {
+                saveRoll(parseInt(btn.dataset.value));
+            });
         });
-    });
 
-    toucherBtn?.addEventListener('click', () => {
-        toucher = toucher ? 0 : 1;
-        toucherBtn.classList.toggle('active', toucher === 1);
-    });
+        document.querySelectorAll('.btn-miss').forEach(btn => {
+            btn.addEventListener('click', () => {
+                saveRoll(parseInt(btn.dataset.value));
+            });
+        });
+
+        toucherBtn?.addEventListener('click', () => {
+            toucher = toucher ? 0 : 1;
+            toucherBtn.classList.toggle('active', toucher === 1);
+        });
+    }
 
     undoBtn?.addEventListener('click', undoLastRoll);
     quitBtn?.addEventListener('click', quitChallenge);

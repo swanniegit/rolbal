@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/templates/page_head.php';
-pageHead('Privacy Policy — BowlsTracker', [], '#2d5016');
+require_once __DIR__ . '/includes/Template.php';
+Template::pageHead('Privacy Policy', [], '#2d5016');
 ?>
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8faf5;color:#1a1a1a;margin:0;padding:0">
 
