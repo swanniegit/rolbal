@@ -39,15 +39,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rawPayload = file_get_contents('php://input');
     error_log("[WA-WEBHOOK] Received POST: " . substr($rawPayload, 0, 1000));
 
-    // Verify signature (optional but recommended)
+    // Verify signature — mandatory when APP_SECRET is configured
     $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
-    if (WHATSAPP_APP_SECRET && $signature) {
-        if (!WhatsAppAPI::verifySignature($rawPayload, $signature)) {
-            error_log("[WA-WEBHOOK] Invalid signature");
+    if (WHATSAPP_APP_SECRET) {
+        if (!$signature || !WhatsAppAPI::verifySignature($rawPayload, $signature)) {
+            error_log("[WA-WEBHOOK] Invalid or missing signature");
             http_response_code(403);
             echo json_encode(['error' => 'Invalid signature']);
             exit;
         }
+    } else {
+        error_log("[WA-WEBHOOK] WARNING: WHATSAPP_APP_SECRET not set — signature verification disabled");
     }
 
     $payload = json_decode($rawPayload, true);

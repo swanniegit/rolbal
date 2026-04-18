@@ -31,15 +31,9 @@ Template::pageHead('Verify Email');
             <div class="verify-card">
                 <div class="verify-icon success">✓</div>
                 <h2>Registration Successful!</h2>
-                <p>Your account has been created.</p>
-
-                <?php if ($token): ?>
-                <p class="verify-note">For demo purposes, click below to verify your account immediately:</p>
-                <a href="verify.php?token=<?= htmlspecialchars($token) ?>" class="btn-primary">Verify Email</a>
-                <?php else: ?>
-                <p class="verify-note">Please check your email to verify your account before logging in.</p>
+                <p>We've sent a verification link to your email address.</p>
+                <p class="verify-note">Click the link in the email to activate your account, then log in. Check your spam folder if you don't see it.</p>
                 <a href="login.php" class="btn-secondary">Go to Login</a>
-                <?php endif; ?>
             </div>
 
             <?php elseif ($verified): ?>

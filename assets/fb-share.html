@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* ── Header bar ── */
+    .header {
+        background: #1e3a0f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 16px 0 14px;
+        flex-shrink: 0;
+    }
+
+    .header img {
+        width: 44px;
+        height: 44px;
+    }
+
+    .header-text h1 {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.03em;
+        line-height: 1;
+    }
+
+    .header-text p {
+        font-size: 0.78rem;
+        color: #f5b800;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    /* ── Split ── */
+    .split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        flex: 1;
+    }
+
+    /* ── Panels ── */
+    .panel {
+        padding: 28px 36px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panel--bowler { background: #f0f7e8; }
+    .panel--club   { background: #fffbee; border-left: 1px solid #f0e4a0; }
+
+    .panel-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .panel-heading-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .panel--bowler .panel-heading-icon { background: #c8e8a0; }
+    .panel--club   .panel-heading-icon { background: #fde980; }
+
+    .panel-heading h2 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    .panel--bowler h2 { color: #2d5016; }
+    .panel--club   h2 { color: #7a5200; }
+
+    .panel-heading p {
+        font-size: 0.72rem;
+        color: #888;
+        margin-top: 2px;
+    }
+
+    /* ── Features ── */
+    .features {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+    }
+
+    .features li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.875rem;
+        color: #1a1a1a;
+        line-height: 1.3;
+    }
+
+    .feat-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    .panel--bowler .feat-icon { background: #d8f0b0; }
+    .panel--club   .feat-icon { background: #fde980; }
+
+    .feat-text strong {
+        font-weight: 700;
+        display: block;
+        font-size: 0.875rem;
+    }
+
+    .feat-text span {
+        font-size: 0.75rem;
+        color: #666;
+    }
+
+    /* ── Footer bar ── */
+    .footer {
+        background: #2d5016;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 36px;
+        flex-shrink: 0;
+    }
+
+    .footer-url {
+        color: #f5b800;
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+    }
+
+    .footer-badge {
+        background: #f5b800;
+        color: #1e3a0f;
+        font-size: 0.8rem;
+        font-weight: 800;
+        padding: 5px 14px;
+        border-radius: 2rem;
+        letter-spacing: 0.02em;
+    }
+
+    .footer-tagline {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+</style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="logo-192.png" alt="">
+        <div class="header-text">
+            <h1>BowlsTracker</h1>
+            <p>Track &nbsp;·&nbsp; Improve &nbsp;·&nbsp; Compete</p>
+        </div>
+    </div>
+
+    <div class="split">
+
+        <!-- You the Bowler -->
+        <div class="panel panel--bowler">
+            <div class="panel-heading">
+                <div class="panel-heading-icon">
+                    <img src="bowl-icon.svg" alt="" style="width:22px;height:22px;">
+                </div>
+                <div>
+                    <h2>You the Bowler</h2>
+                    <p>Your personal performance hub</p>
+                </div>
+            </div>
+            <ul class="features">
+                <li>
+                    <div class="feat-icon">🎯</div>
+                    <div class="feat-text">
+                        <strong>Practice Sessions</strong>
+                        <span>Record every bowl on a visual position grid</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feat-icon">📐</div>
+                    <div class="feat-text">
+                        <strong>Performance Statistics</strong>
+                        <span>Delivery trends by hand, length &amp; end</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feat-icon">📜</div>
+                    <div class="feat-text">
+                        <strong>Session History</strong>
+                        <span>Browse and replay every past game</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feat-icon">🏆</div>
+                    <div class="feat-text">
+                        <strong>Skill Challenges</strong>
+                        <span>Structured routines to benchmark your level</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feat-icon">🆓</div>
+                    <div class="feat-text">
+                        <strong>Free Until July 2026</strong>
+                        <span>No credit card, no catch</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Your Club -->
+        <div class="panel panel--club">
+            <div class="panel-heading">
+                <div class="panel-heading-icon">🏛️</div>
+                <div>
+                    <h2>Your Club</h2>
+                    <p>Run matches, comps &amp; keep members connected</p>
+                </div>
+            </div>
+            <ul class="features">
+                <li>
+                    <div class="feat-icon">⚡</div>
+                    <div class="feat-text">
+                        <strong>Live Match Scoring</strong>
+                        <span>Singles, Pairs, Trips &amp; Fours — real-time</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feat-icon">👥</div>
+                    <div class="feat-text">
+                        <strong>Club Membership</strong>
+                        <span>Invite members, assign roles, manage access</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feat-icon">🗂️</div>
+                    <div class="feat-text">
+                        <strong>Competitions</strong>
+                        <span>Round Robin, Knockout &amp; Combined formats</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feat-icon">📋</div>
+                    <div class="feat-text">
+                        <strong>Fixture Management</strong>
+                        <span>Schedule, track results, full season records</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feat-icon">🔔</div>
+                    <div class="feat-text">
+                        <strong>WhatsApp Updates</strong>
+                        <span>Fixtures &amp; scores direct to your members</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <span class="footer-url">bowlstracker.co.za</span>
+        <span class="footer-tagline">Install free — no app store needed</span>
+        <span class="footer-badge">Free until July 2026</span>
+    </div>
+
+</body>
+</html>

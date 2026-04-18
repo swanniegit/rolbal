@@ -13,8 +13,11 @@ class Template
      */
     public static function render(string $template, array $params = []): void
     {
-        extract($params);
-        include self::$basePath . $template . '.php';
+        // Closure scope prevents $params keys from colliding with or leaking into outer variables
+        (static function(string $__path, array $__vars): void {
+            extract($__vars, EXTR_SKIP);
+            include $__path;
+        })(self::$basePath . $template . '.php', $params);
     }
 
     /**

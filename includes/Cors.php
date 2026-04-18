@@ -8,18 +8,26 @@
 
 class Cors {
 
-    private static array $allowed = [
+    // Production origins — always allowed
+    private static array $prodOrigins = [
         'https://bowlstracker.co.za',
         'capacitor://localhost',   // Capacitor Android (older scheme)
         'https://localhost',       // Capacitor Android 6+ (new scheme)
-        'http://localhost:3000',   // Vite dev server
-        'http://10.0.2.2',        // Android emulator → host machine
+    ];
+
+    // Dev-only origins — only added when APP_ENV !== 'production'
+    private static array $devOrigins = [
+        'http://localhost:3000',
+        'http://10.0.2.2',
     ];
 
     public static function handle(): void {
-        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        $origin  = $_SERVER['HTTP_ORIGIN'] ?? '';
+        $allowed = APP_ENV !== 'production'
+            ? array_merge(self::$prodOrigins, self::$devOrigins)
+            : self::$prodOrigins;
 
-        if (in_array($origin, self::$allowed, true)) {
+        if (in_array($origin, $allowed, true)) {
             header("Access-Control-Allow-Origin: $origin");
             header('Vary: Origin');
         }

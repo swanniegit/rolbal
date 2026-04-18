@@ -14,6 +14,8 @@ require_once __DIR__ . '/../includes/TokenStore.php';
 require_once __DIR__ . '/../includes/Captcha.php';
 require_once __DIR__ . '/../includes/ApiResponse.php';
 require_once __DIR__ . '/../includes/Cors.php';
+require_once __DIR__ . '/../includes/RateLimit.php';
+require_once __DIR__ . '/../includes/Mailer.php';
 
 Cors::handle();
 
@@ -25,9 +27,16 @@ try {
     $action = $input['action'] ?? $_GET['action'] ?? '';
     $mode   = $_GET['mode']    ?? $input['mode']  ?? '';  // 'token' for mobile
 
+    $clientIp = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'register') {
+            // 10 registrations per IP per hour
+            if (!RateLimit::attempt('register', $clientIp, 10, 3600)) {
+                ApiResponse::error('Too many registration attempts. Try again later.', 429);
+            }
+
             $email           = $input['email']            ?? '';
             $password        = $input['password']         ?? '';
             $confirmPassword = $input['confirm_password'] ?? '';
@@ -44,8 +53,8 @@ try {
             if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 throw new Exception('Valid email address is required');
             }
-            if (strlen($password) < 8) {
-                throw new Exception('Password must be at least 8 characters');
+            if (strlen($password) < 12) {
+                throw new Exception('Password must be at least 12 characters');
             }
             if ($password !== $confirmPassword) {
                 throw new Exception('Passwords do not match');
@@ -65,14 +74,20 @@ try {
 
             $playerId = Player::create($email, $password, $name, $hand);
             $player   = Player::find($playerId);
+            Mailer::sendVerification($email, $name, $player['verification_token']);
 
             ApiResponse::success([
-                'message'  => 'Registration successful! Please check your email to verify your account.',
-                'player_id'=> $playerId,
-                'token'    => $player['verification_token'],
+                'message'   => 'Registration successful! Please check your email to verify your account.',
+                'player_id' => $playerId,
             ]);
 
         } elseif ($action === 'login') {
+            // 5 login attempts per IP per 5 minutes
+            if (!RateLimit::attempt('login', $clientIp, 5, 300)) {
+                $wait = RateLimit::retryAfter('login', $clientIp, 300);
+                ApiResponse::error("Too many login attempts. Try again in {$wait}s.", 429);
+            }
+
             $email    = $input['email']      ?? '';
             $password = $input['password']   ?? '';
             $csrf     = $input['csrf_token'] ?? '';
@@ -91,6 +106,8 @@ try {
             if (!$player['email_verified']) {
                 throw new Exception('Please verify your email before logging in');
             }
+
+            RateLimit::clear('login', $clientIp);
 
             if ($mode === 'token') {
                 // Mobile: return JWT + refresh token, no session

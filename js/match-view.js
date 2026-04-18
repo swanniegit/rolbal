@@ -25,15 +25,16 @@ function updateScoreboard(data) {
     let t1Shots = {}, t2Shots = {}, t1Running = {}, t2Running = {};
 
     data.ends.forEach(end => {
-        const num = end.end_number;
-        if (end.scoring_team == 1) {
-            t1Shots[num] = end.shots;
+        const num  = parseInt(end.end_number, 10);
+        const shots = parseInt(end.shots, 10) || 0;
+        if (parseInt(end.scoring_team, 10) === 1) {
+            t1Shots[num] = shots;
             t2Shots[num] = '-';
-            t1Total += end.shots;
+            t1Total += shots;
         } else {
             t1Shots[num] = '-';
-            t2Shots[num] = end.shots;
-            t2Total += end.shots;
+            t2Shots[num] = shots;
+            t2Total += shots;
         }
         t1Running[num] = t1Total;
         t2Running[num] = t2Total;

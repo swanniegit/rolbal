@@ -41,9 +41,11 @@ function updateDisplay(matches) {
 
             // Update ends row
             const endsRow = document.getElementById('ends-' + match.id);
-            endsRow.innerHTML = match.ends.map(end =>
-                `<div class="end-chip team-${end.scoring_team}">${end.shots}</div>`
-            ).join('');
+            endsRow.innerHTML = match.ends.map(end => {
+                const team  = parseInt(end.scoring_team, 10) || 0;
+                const shots = parseInt(end.shots, 10) || 0;
+                return `<div class="end-chip team-${team}">${shots}</div>`;
+            }).join('');
         } else {
             // New match - reload page to get full HTML
             location.reload();

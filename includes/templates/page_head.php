@@ -26,8 +26,8 @@ $csrfToken = Auth::generateCsrfToken();
     <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
     <title><?= htmlspecialchars($fullTitle) ?></title>
     <link rel="manifest" href="<?= $manifestPath ?? 'manifest.json' ?>">
-    <link rel="stylesheet" href="<?= $cssBasePath ?? '' ?>css/styles.css">
+    <link rel="stylesheet" href="<?= $cssBasePath ?? '' ?>css/styles.css?v=2">
 <?php foreach ($css as $cssFile): ?>
-    <link rel="stylesheet" href="<?= htmlspecialchars($cssFile) ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($cssFile) ?>?v=2">
 <?php endforeach; ?>
 </head>

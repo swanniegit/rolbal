@@ -42,7 +42,7 @@ Template::pageHead('Register');
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-field">
-                        <input type="password" name="password" id="password" required minlength="8" autocomplete="new-password" placeholder="Min. 8 characters">
+                        <input type="password" name="password" id="password" required minlength="12" autocomplete="new-password" placeholder="Min. 12 characters">
                         <button type="button" class="password-toggle" data-target="password" aria-label="Show password">
                             <span class="eye-icon">👁</span>
                         </button>
@@ -125,7 +125,7 @@ Template::pageHead('Register');
                 const data = await res.json();
 
                 if (data.success) {
-                    window.location.href = 'verify.php?registered=1&token=' + data.token;
+                    window.location.href = 'verify.php?registered=1';
                 } else {
                     throw new Error(data.error || 'Registration failed');
                 }

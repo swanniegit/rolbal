@@ -159,9 +159,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.ends.length === 0) {
             grid.innerHTML = '<span style="color: #999; font-size: 0.85rem;">No ends recorded yet</span>';
         } else {
-            grid.innerHTML = data.ends.map(end =>
-                `<div class="end-cell team-${end.scoring_team}">${end.shots}</div>`
-            ).join('');
+            grid.innerHTML = data.ends.map(end => {
+                const team  = parseInt(end.scoring_team, 10) || 0;
+                const shots = parseInt(end.shots, 10) || 0;
+                return `<div class="end-cell team-${team}">${shots}</div>`;
+            }).join('');
         }
 
         // Update section title

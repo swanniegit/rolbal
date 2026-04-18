@@ -1,0 +1,508 @@
+/* Landing page — promotional two-column layout */
+
+/* Override the narrow mobile container for the landing page */
+.landing-page .app-container {
+    max-width: 1100px;
+    padding: 0;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.landing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: var(--primary);
+    color: white;
+}
+
+.landing-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.landing-header-brand .logo {
+    width: 40px;
+    height: 40px;
+}
+
+.landing-header-brand h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: white;
+}
+
+.landing-header-nav {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.landing-header-nav a {
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.45rem 1.1rem;
+    border-radius: 2rem;
+    transition: background var(--transition), color var(--transition);
+}
+
+.btn-login {
+    color: white;
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+.btn-login:hover {
+    border-color: white;
+    background: rgba(255,255,255,0.1);
+}
+
+.btn-register {
+    background: var(--secondary);
+    color: var(--primary-dark);
+    border: 2px solid var(--secondary);
+}
+
+.btn-register:hover {
+    background: #e0a800;
+    border-color: #e0a800;
+}
+
+.landing-user-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.landing-user-bar .player-link {
+    color: var(--secondary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.landing-user-bar .logout-link {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+}
+
+.landing-user-bar .logout-link:hover {
+    color: white;
+}
+
+/* ── Hero ────────────────────────────────────────────────── */
+.landing-hero {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    color: white;
+    text-align: center;
+    padding: 3.5rem 2rem 3rem;
+}
+
+.landing-hero h2 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+}
+
+.landing-hero h2 span {
+    color: var(--secondary);
+}
+
+.landing-hero p {
+    font-size: 1.1rem;
+    opacity: 0.85;
+    max-width: 480px;
+    margin: 0 auto 1.75rem;
+    line-height: 1.5;
+}
+
+.hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--secondary);
+    color: var(--primary-dark);
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.8rem 2rem;
+    border-radius: 2rem;
+    text-decoration: none;
+    transition: transform var(--transition), background var(--transition);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+
+.hero-cta:hover {
+    transform: translateY(-2px);
+    background: #e0a800;
+}
+
+/* ── Two-column promo ────────────────────────────────────── */
+.promo-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 480px;
+}
+
+.promo-panel {
+    padding: 3rem 2.5rem;
+}
+
+.promo-panel--bowler {
+    background: #f0f7e8;
+    border-right: 1px solid #dde8d0;
+}
+
+.promo-panel--club {
+    background: #fffbee;
+}
+
+.promo-panel-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+}
+
+.promo-panel h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+}
+
+.promo-panel--bowler h3 { color: var(--primary); }
+.promo-panel--club h3   { color: #8a6000; }
+
+.promo-panel-sub {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1.75rem;
+    line-height: 1.4;
+}
+
+.promo-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.promo-features li {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+}
+
+.promo-feature-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+}
+
+.promo-panel--bowler .promo-feature-icon { background: #d4ecb8; }
+.promo-panel--club   .promo-feature-icon { background: #fdeea0; }
+
+.promo-feature-text strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+}
+
+.promo-feature-text span {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* ── Community / feedback section ───────────────────────── */
+.community-section {
+    background: linear-gradient(135deg, #1877f2 0%, #0c5dc7 100%);
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.community-inner {
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.community-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.75rem;
+}
+
+.community-section h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.02em;
+}
+
+.community-section p {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+}
+
+.community-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: white;
+    color: #1877f2;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 2rem;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.community-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+/* ── Install section ─────────────────────────────────────── */
+.install-section {
+    background: white;
+    border-top: 1px solid #e8eedf;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.install-section-header {
+    margin-bottom: 2.5rem;
+}
+
+.install-section-header h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.install-section-header p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+.install-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.install-card {
+    background: var(--bg);
+    border: 1px solid #e2edda;
+    border-radius: var(--radius);
+    padding: 1.75rem 1.5rem;
+    text-align: left;
+}
+
+.install-card-platform {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+}
+
+.install-card-platform-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.install-card-platform h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.install-card-platform span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: block;
+    line-height: 1.2;
+}
+
+.install-steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    counter-reset: steps;
+}
+
+.install-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-size: 0.875rem;
+    color: var(--text);
+    line-height: 1.4;
+    counter-increment: steps;
+}
+
+.install-steps li::before {
+    content: counter(steps);
+    min-width: 22px;
+    height: 22px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+}
+
+.install-steps li kbd {
+    display: inline-block;
+    background: #e8eedf;
+    color: var(--primary-dark);
+    border-radius: 4px;
+    padding: 0.05rem 0.4rem;
+    font-size: 0.8rem;
+    font-family: inherit;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.install-note {
+    margin-top: 2rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.install-note a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* ── App nav (logged-in quick access) ───────────────────── */
+.landing-app-nav {
+    padding: 2rem 2rem 0;
+    background: white;
+    border-top: 1px solid #e8eedf;
+}
+
+.landing-app-nav h4 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.landing-nav-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.landing-nav-cards .nav-card {
+    flex: 0 0 auto;
+    min-width: 90px;
+    padding: 0.75rem 1rem;
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+.landing-footer {
+    margin-top: auto;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: white;
+    border-top: 1px solid #e8eedf;
+}
+
+.landing-footer a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .landing-header {
+        padding: 0.875rem 1rem;
+    }
+
+    .landing-header-brand h1 {
+        font-size: 1.1rem;
+    }
+
+    .btn-login { font-size: 0.85rem; padding: 0.45rem 1rem; }
+
+    .landing-hero {
+        padding: 2.5rem 1.25rem 2rem;
+    }
+
+    .promo-split {
+        grid-template-columns: 1fr;
+    }
+
+    .promo-panel {
+        padding: 2rem 1.25rem;
+    }
+
+    .promo-panel--bowler {
+        border-right: none;
+        border-bottom: 1px solid #dde8d0;
+    }
+
+    .landing-app-nav {
+        padding: 1.5rem 1rem 0;
+    }
+
+    .install-section {
+        padding: 2rem 1.25rem;
+    }
+
+    .install-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .landing-footer {
+        padding: 1.25rem 1rem;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+    .install-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .install-cards .install-card:last-child {
+        grid-column: span 2;
+        max-width: 420px;
+        margin: 0 auto;
+        width: 100%;
+    }
+}
