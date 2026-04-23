@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../includes/Player.php';
+require_once __DIR__ . '/../includes/Mailer.php';
 require_once __DIR__ . '/../includes/ApiResponse.php';
 
 try {
@@ -14,7 +15,9 @@ try {
             throw new Exception('Verification token is required');
         }
 
-        if (Player::verify($token)) {
+        $player = Player::verify($token);
+        if ($player) {
+            Mailer::sendWelcome($player['email'], $player['name']);
             ApiResponse::success([
                 'message' => 'Email verified successfully! You can now log in.'
             ]);

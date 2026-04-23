@@ -11,11 +11,10 @@ class MatchQueries {
     public static function findWithDetails(int $id): ?array {
         $db = Database::getInstance();
 
-        // Get base match
         $stmt = $db->prepare('
             SELECT m.*, c.name as club_name, p.name as created_by_name
             FROM matches m
-            JOIN clubs c ON c.id = m.club_id
+            LEFT JOIN clubs c ON c.id = m.club_id
             JOIN players p ON p.id = m.created_by
             WHERE m.id = :id
         ');
@@ -26,6 +25,30 @@ class MatchQueries {
             return null;
         }
 
+        return self::attachTeamsAndEnds($match, $db);
+    }
+
+    public static function findBounceWithDetails(string $token): ?array {
+        if (strlen($token) < 16) return null;
+        $db = Database::getInstance();
+
+        $stmt = $db->prepare('
+            SELECT m.*, p.name as created_by_name
+            FROM matches m
+            JOIN players p ON p.id = m.created_by
+            WHERE m.share_token = :token AND m.game_type = "bounce"
+        ');
+        $stmt->execute(['token' => $token]);
+        $match = $stmt->fetch();
+
+        if (!$match) return null;
+
+        return self::attachTeamsAndEnds($match, $db);
+    }
+
+    private static function attachTeamsAndEnds(array $match, $db): array {
+        $id = $match['id'];
+
         // Get teams
         $stmt = $db->prepare('SELECT * FROM match_teams WHERE match_id = :id ORDER BY team_number');
         $stmt->execute(['id' => $id]);
@@ -33,7 +56,7 @@ class MatchQueries {
 
         // Get players for each team
         foreach ($teams as &$team) {
-            $stmt = $db->prepare('SELECT * FROM match_players WHERE team_id = :id ORDER BY FIELD(position, "skip", "third", "second", "lead")');
+            $stmt = $db->prepare('SELECT * FROM match_players WHERE team_id = :id ORDER BY FIELD(position, "skip", "third", "second", "lead", "player"), id');
             $stmt->execute(['id' => $team['id']]);
             $team['players'] = $stmt->fetchAll();
         }
@@ -57,6 +80,39 @@ class MatchQueries {
         $match['current_end'] = count($match['ends']) + 1;
 
         return $match;
+    }
+
+    public static function getLiveBounceGames(): array {
+        $db = Database::getInstance();
+
+        // Only matches from the last 3 days, live or setup
+        $stmt = $db->prepare('
+            SELECT m.id, m.match_name, m.share_token, m.status, m.scoring_mode, m.target_score,
+                   m.players_per_team, m.bowls_per_player, m.started_at, m.created_at,
+                   t1.team_name as team1_name, t2.team_name as team2_name,
+                   p.name as created_by_name, c.name as club_name
+            FROM matches m
+            LEFT JOIN match_teams t1 ON t1.match_id = m.id AND t1.team_number = 1
+            LEFT JOIN match_teams t2 ON t2.match_id = m.id AND t2.team_number = 2
+            LEFT JOIN clubs c ON c.id = m.club_id
+            JOIN players p ON p.id = m.created_by
+            WHERE m.game_type = "bounce"
+              AND m.status IN ("live", "setup", "completed")
+              AND m.created_at >= DATE_SUB(NOW(), INTERVAL 3 DAY)
+            ORDER BY m.started_at DESC, m.created_at DESC
+        ');
+        $stmt->execute();
+        $matches = $stmt->fetchAll();
+
+        foreach ($matches as &$match) {
+            $scores = MatchScoring::getScores($match['id']);
+            $match['team1_score'] = $scores['team1_score'];
+            $match['team2_score'] = $scores['team2_score'];
+            $match['current_end'] = $scores['current_end'];
+            $match['ends']        = $scores['ends'];
+        }
+
+        return $matches;
     }
 
     public static function getLiveMatchesForClub(int $clubId): array {

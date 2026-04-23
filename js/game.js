@@ -92,27 +92,56 @@ function initRollRecording(sessionId) {
     let totalRolls = parseInt(document.getElementById('totalRolls').value);
 
     let currentEndLength = null;
+    let currentDelivery = null;
     let toucher = 0;
 
     const stepEndLength = document.getElementById('stepEndLength');
-    const stepResult = document.getElementById('stepResult');
-    const toucherBtn = document.getElementById('toucherBtn');
+    const stepDelivery  = document.getElementById('stepDelivery');
+    const stepResult    = document.getElementById('stepResult');
+    const toucherBtn    = document.getElementById('toucherBtn');
 
-    // End length selection
+    function showStep(step) {
+        [stepEndLength, stepDelivery, stepResult].forEach(s => s.classList.add('hidden'));
+        step.classList.remove('hidden');
+    }
+
+    function goToDelivery() {
+        currentDelivery = null;
+        const bowl = (totalRolls % bowlsPerEnd) + 1;
+        document.getElementById('deliveryHeader').textContent = `Bowl ${bowl} - Delivery`;
+        stepDelivery.querySelectorAll('.btn-choice').forEach(b => b.classList.remove('selected'));
+        showStep(stepDelivery);
+    }
+
+    // End length selection → go to delivery
     stepEndLength.querySelectorAll('.btn-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             currentEndLength = parseInt(btn.dataset.value);
-
             stepEndLength.querySelectorAll('.btn-choice').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
+            setTimeout(() => goToDelivery(), 150);
+        });
+    });
 
+    // Delivery selection → go to result grid
+    stepDelivery.querySelectorAll('.btn-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentDelivery = parseInt(btn.dataset.value);
+            stepDelivery.querySelectorAll('.btn-choice').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            const label = btn.textContent;
             setTimeout(() => {
-                stepEndLength.classList.add('hidden');
-                stepResult.classList.remove('hidden');
-                updateBowlHeader();
+                document.getElementById('bowlHeader').textContent =
+                    `Bowl ${(totalRolls % bowlsPerEnd) + 1} — ${label}`;
+                showStep(stepResult);
             }, 150);
         });
     });
+
+    // On page load mid-game (not at start of end): go straight to delivery
+    if (stepEndLength.classList.contains('hidden') && stepResult.classList.contains('hidden')) {
+        goToDelivery();
+    }
 
     // Result position selection (including miss buttons)
     stepResult.querySelectorAll('.btn-pos, .btn-miss').forEach(btn => {
@@ -140,6 +169,7 @@ function initRollRecording(sessionId) {
             session_id: sessionId,
             end_number: currentEnd,
             end_length: currentEndLength,
+            delivery: currentDelivery,
             result: result,
             toucher: toucher
         });
@@ -170,13 +200,13 @@ function initRollRecording(sessionId) {
             } else if (totalRolls % bowlsPerEnd === 0) {
                 // End complete, show end length selection
                 currentEndLength = null;
-                stepResult.classList.add('hidden');
-                stepEndLength.classList.remove('hidden');
+                currentDelivery = null;
                 stepEndLength.querySelector('h2').textContent = `End ${Math.floor(totalRolls / bowlsPerEnd) + 1} - Length`;
                 stepEndLength.querySelectorAll('.btn-choice').forEach(b => b.classList.remove('selected'));
+                showStep(stepEndLength);
             } else {
-                // Next bowl in same end
-                updateBowlHeader();
+                // Next bowl in same end — pick delivery again
+                goToDelivery();
             }
         } else {
             UI.showFlash('error', json.error || 'Failed to save roll');

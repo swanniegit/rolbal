@@ -41,6 +41,11 @@ class MatchPermissions {
     }
 
     public static function canScore(int $playerId, int $matchId, array $match): bool {
+        // Bounce games: any logged-in player can score
+        if ($match['game_type'] === 'bounce') {
+            return true;
+        }
+
         // If scorer is claimed, only that person can score
         if (!empty($match['scorer_id'])) {
             return $match['scorer_id'] == $playerId;
@@ -70,6 +75,11 @@ class MatchPermissions {
     }
 
     public static function canDelete(int $playerId, array $match): bool {
+        // Bounce games: only creator can delete
+        if ($match['game_type'] === 'bounce') {
+            return $match['created_by'] == $playerId;
+        }
+
         // Match creator can delete
         if ($match['created_by'] == $playerId) {
             return true;

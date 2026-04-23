@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/includes/Auth.php';
 require_once __DIR__ . '/includes/Player.php';
+require_once __DIR__ . '/includes/Mailer.php';
 require_once __DIR__ . '/includes/Template.php';
 
 $token = $_GET['token'] ?? '';
@@ -13,8 +14,10 @@ $verified = false;
 $error = null;
 
 if ($token && !$justRegistered) {
-    if (Player::verify($token)) {
+    $verifiedPlayer = Player::verify($token);
+    if ($verifiedPlayer) {
         $verified = true;
+        Mailer::sendWelcome($verifiedPlayer['email'], $verifiedPlayer['name']);
     } else {
         $error = 'Invalid or expired verification link.';
     }

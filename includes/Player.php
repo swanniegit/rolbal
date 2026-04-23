@@ -46,11 +46,11 @@ class Player {
         return $result ?: null;
     }
 
-    public static function verify(string $token): bool {
+    public static function verify(string $token): ?array {
         $db = Database::getInstance();
 
         $stmt = $db->prepare('
-            SELECT id FROM players
+            SELECT id, name, email FROM players
             WHERE verification_token = :token
             AND token_expires > NOW()
             AND email_verified = 0
@@ -59,7 +59,7 @@ class Player {
         $player = $stmt->fetch();
 
         if (!$player) {
-            return false;
+            return null;
         }
 
         $stmt = $db->prepare('
@@ -67,7 +67,9 @@ class Player {
             SET email_verified = 1, verification_token = NULL, token_expires = NULL
             WHERE id = :id
         ');
-        return $stmt->execute(['id' => $player['id']]);
+        $stmt->execute(['id' => $player['id']]);
+
+        return $player;
     }
 
     public static function validatePassword(string $email, string $password): ?array {

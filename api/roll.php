@@ -63,6 +63,7 @@ try {
         $sessionId = isset($input['session_id']) ? (int)$input['session_id'] : 0;
         $endNumber = isset($input['end_number']) ? (int)$input['end_number'] : 1;
         $endLength = isset($input['end_length']) ? (int)$input['end_length'] : 0;
+        $delivery  = isset($input['delivery'])   ? (int)$input['delivery']   : 0;
         $result    = isset($input['result'])     ? (int)$input['result']     : 0;
         $toucher   = isset($input['toucher'])    ? (int)$input['toucher']    : 0;
 
@@ -74,7 +75,7 @@ try {
         RollValidator::validateEndLength($endLength);
         RollValidator::validateResult($result);
 
-        $id = Roll::create($sessionId, $endNumber, $endLength, $result, $toucher);
+        $id = Roll::create($sessionId, $endNumber, $endLength, $result, $toucher, $delivery);
 
         ApiResponse::success(['id' => $id]);
 

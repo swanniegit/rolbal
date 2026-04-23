@@ -40,7 +40,7 @@ if (!$club) {
 
 $gameTypes = GameMatch::getGameTypes();
 
-Template::pageHead('New Competition', [], '#2d5016', '../');
+Template::pageHead('New Competition', ['../css/pages/competition-create.css'], '#2d5016', '../');
 ?>
 <body>
     <div class="app-container">
@@ -50,111 +50,114 @@ Template::pageHead('New Competition', [], '#2d5016', '../');
             <?php Template::flash($flash); ?>
             <?php Template::formError(); ?>
 
-            <form id="createForm" class="form">
+            <form id="createForm">
                 <input type="hidden" name="club_id" value="<?= $clubId ?>">
                 <input type="hidden" name="action" value="create">
                 <input type="hidden" name="csrf_token" value="<?= Auth::generateCsrfToken() ?>">
 
-                <div class="form-group">
-                    <label for="name">Competition Name</label>
-                    <input type="text" id="name" name="name" required maxlength="150"
-                           placeholder="e.g., Summer Singles Championship">
+                <!-- Name & Description -->
+                <div class="form-section">
+                    <h3>Details</h3>
+                    <div class="form-group">
+                        <label for="name">Competition Name</label>
+                        <input type="text" id="name" name="name" required maxlength="150"
+                               placeholder="e.g., Summer Singles Championship">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description (optional)</label>
+                        <textarea id="description" name="description" rows="2"
+                                  placeholder="Details about the competition..."></textarea>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="description">Description (optional)</label>
-                    <textarea id="description" name="description" rows="3"
-                              placeholder="Details about the competition..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Competition Format</label>
-                    <div class="toggle-group format-group">
+                <!-- Format -->
+                <div class="form-section">
+                    <h3>Format</h3>
+                    <div class="toggle-group cols-3 format-group">
                         <button type="button" class="toggle-btn active" data-value="knockout">
                             <span class="toggle-title">Knockout</span>
-                            <span class="toggle-desc">Single elimination bracket</span>
+                            <span class="toggle-desc">Elimination bracket</span>
                         </button>
                         <button type="button" class="toggle-btn" data-value="round_robin">
                             <span class="toggle-title">Round Robin</span>
-                            <span class="toggle-desc">Everyone plays everyone</span>
+                            <span class="toggle-desc">Everyone plays all</span>
                         </button>
                         <button type="button" class="toggle-btn" data-value="combined">
                             <span class="toggle-title">Combined</span>
-                            <span class="toggle-desc">Groups then knockout</span>
+                            <span class="toggle-desc">Groups + knockout</span>
                         </button>
                     </div>
                     <input type="hidden" name="format" value="knockout">
+
+                    <!-- Round Robin / Combined options -->
+                    <div id="sectionOptions" class="options-section" style="display:none; margin-top: 1rem;">
+                        <div class="form-group">
+                            <label for="group_count">Number of Sections</label>
+                            <select id="group_count" name="group_count">
+                                <option value="">No sections (single round robin)</option>
+                                <option value="2">2 Sections</option>
+                                <option value="4">4 Sections</option>
+                                <option value="6">6 Sections</option>
+                                <option value="7">7 Sections</option>
+                                <option value="8">8 Sections</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="teams_per_section">Teams per Section</label>
+                            <select id="teams_per_section" name="teams_per_section">
+                                <option value="3">3 Teams</option>
+                                <option value="4" selected>4 Teams</option>
+                                <option value="5">5 Teams</option>
+                                <option value="6">6 Teams</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="rink_count">Available Rinks</label>
+                            <select id="rink_count" name="rink_count">
+                                <option value="4">4 Rinks</option>
+                                <option value="5">5 Rinks</option>
+                                <option value="6" selected>6 Rinks</option>
+                                <option value="7">7 Rinks</option>
+                                <option value="8">8 Rinks</option>
+                            </select>
+                            <span class="help-text">Used for scheduling concurrent matches</span>
+                        </div>
+                    </div>
+
+                    <div id="qualifierOptions" style="display:none; margin-top: 1rem;">
+                        <div class="form-group">
+                            <label for="qualifiers_per_section">Knockout Qualifiers per Section</label>
+                            <select id="qualifiers_per_section" name="qualifiers_per_section">
+                                <option value="1">Winner only</option>
+                                <option value="2" selected>Top 2 (Winner + Runner Up)</option>
+                                <option value="3">Top 3</option>
+                                <option value="4">Top 4</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Game Type</label>
-                    <div class="toggle-group game-type-group">
+                <!-- Game Type -->
+                <div class="form-section">
+                    <h3>Game Type</h3>
+                    <div class="toggle-group cols-4 game-type-group">
                         <?php $first = true; foreach ($gameTypes as $type => $config): ?>
                         <button type="button" class="toggle-btn<?= $first ? ' active' : '' ?>" data-value="<?= $type ?>">
                             <span class="toggle-title"><?= ucfirst($type) ?></span>
-                            <span class="toggle-desc"><?= $config['players_per_team'] ?> player<?= $config['players_per_team'] > 1 ? 's' : '' ?></span>
+                            <span class="toggle-desc"><?= $config['players_per_team'] ?>v<?= $config['players_per_team'] ?></span>
                         </button>
                         <?php $first = false; endforeach; ?>
                     </div>
                     <input type="hidden" name="game_type" value="singles">
                 </div>
 
-                <!-- Round Robin / Combined Section Options -->
-                <div id="sectionOptions" class="options-section" style="display: none;">
-                    <h3 class="options-title">Section Configuration</h3>
-
-                    <div class="form-group">
-                        <label for="group_count">Number of Sections</label>
-                        <select id="group_count" name="group_count">
-                            <option value="">No sections (single round robin)</option>
-                            <option value="2">2 Sections</option>
-                            <option value="4">4 Sections</option>
-                            <option value="6">6 Sections</option>
-                            <option value="7">7 Sections</option>
-                            <option value="8">8 Sections</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="teams_per_section">Teams per Section</label>
-                        <select id="teams_per_section" name="teams_per_section">
-                            <option value="3">3 Teams</option>
-                            <option value="4" selected>4 Teams</option>
-                            <option value="5">5 Teams</option>
-                            <option value="6">6 Teams</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="rink_count">Available Rinks</label>
-                        <select id="rink_count" name="rink_count">
-                            <option value="4">4 Rinks</option>
-                            <option value="5">5 Rinks</option>
-                            <option value="6" selected>6 Rinks</option>
-                            <option value="7">7 Rinks</option>
-                            <option value="8">8 Rinks</option>
-                        </select>
-                        <span class="help-text">Used for scheduling concurrent matches</span>
-                    </div>
-                </div>
-
-                <div id="qualifierOptions" class="form-group" style="display: none;">
-                    <label for="qualifiers_per_section">Knockout Qualifiers</label>
-                    <select id="qualifiers_per_section" name="qualifiers_per_section">
-                        <option value="1">Winner only (1 per section)</option>
-                        <option value="2" selected>Top 2 (Winner + Runner Up)</option>
-                        <option value="3">Top 3</option>
-                        <option value="4">Top 4</option>
-                    </select>
-                    <span class="help-text">How many teams per section advance to knockout</span>
-                </div>
-
-                <div class="form-group">
-                    <label>Scoring Mode</label>
-                    <div class="toggle-group scoring-group">
+                <!-- Scoring -->
+                <div class="form-section">
+                    <h3>Scoring</h3>
+                    <div class="toggle-group cols-2 scoring-group">
                         <button type="button" class="toggle-btn active" data-value="ends">
                             <span class="toggle-title">By Ends</span>
-                            <span class="toggle-desc">Play fixed number of ends</span>
+                            <span class="toggle-desc">Fixed number of ends</span>
                         </button>
                         <button type="button" class="toggle-btn" data-value="first_to">
                             <span class="toggle-title">First To</span>
@@ -162,99 +165,27 @@ Template::pageHead('New Competition', [], '#2d5016', '../');
                         </button>
                     </div>
                     <input type="hidden" name="scoring_mode" value="ends">
+
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="target_score" id="targetLabel">Number of Ends</label>
+                        <input type="number" id="target_score" name="target_score" value="21" min="1" max="50">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="target_score" id="targetLabel">Number of Ends</label>
-                    <input type="number" id="target_score" name="target_score" value="21" min="1" max="50">
+                <!-- Settings -->
+                <div class="form-section">
+                    <h3>Settings</h3>
+                    <div class="form-group">
+                        <label for="max_participants">Max Participants</label>
+                        <input type="number" id="max_participants" name="max_participants"
+                               placeholder="Leave empty for unlimited" min="2" max="128">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="max_participants">Max Participants (optional)</label>
-                    <input type="number" id="max_participants" name="max_participants" placeholder="Leave empty for unlimited" min="2" max="128">
-                </div>
-
-                <button type="submit" class="btn-primary btn-block" id="submitBtn">Create Competition</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Create Competition</button>
             </form>
         </main>
     </div>
-
-    <style>
-    .form { padding: 0; }
-    .form-group { margin-bottom: 1.25rem; }
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: var(--text-primary);
-    }
-    .form-group input[type="text"],
-    .form-group input[type="number"],
-    .form-group textarea,
-    .form-group select {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        font-size: 1rem;
-        background: var(--surface);
-    }
-    .toggle-group {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-        gap: 0.5rem;
-    }
-    .toggle-btn {
-        padding: 0.75rem;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        background: var(--surface);
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .toggle-btn.active {
-        border-color: var(--primary);
-        background: rgba(45, 80, 22, 0.1);
-    }
-    .toggle-title {
-        display: block;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    .toggle-desc {
-        display: block;
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin-top: 0.25rem;
-    }
-    .btn-block {
-        width: 100%;
-        padding: 1rem;
-        font-size: 1rem;
-        margin-top: 1rem;
-    }
-    .options-section {
-        background: var(--bg-muted);
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1.25rem;
-    }
-    .options-title {
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin: 0 0 1rem;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .help-text {
-        display: block;
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin-top: 0.25rem;
-    }
-    </style>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {

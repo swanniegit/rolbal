@@ -1,0 +1,323 @@
+/* Full Stats Page */
+
+.sf-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Header */
+.sf-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem 0 1.25rem;
+    border-bottom: 2px solid var(--bg);
+    margin-bottom: 1.5rem;
+}
+
+.sf-back {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0.9rem;
+    border: 2px solid var(--primary);
+    border-radius: 2rem;
+    transition: background 0.15s, color 0.15s;
+}
+.sf-back:hover { background: var(--primary); color: #fff; }
+
+.sf-header-info h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0 0 0.2rem;
+    letter-spacing: -0.02em;
+}
+
+.sf-session-meta {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Summary strip */
+.sf-summary {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.625rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+    .sf-summary { grid-template-columns: repeat(3, 1fr); }
+}
+
+.sf-stat {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 0.85rem 0.5rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.sf-stat.sf-hl { background: var(--primary); }
+.sf-stat.sf-hl .sf-val,
+.sf-stat.sf-hl .sf-lbl { color: #fff; }
+
+.sf-val {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.15;
+}
+
+.sf-lbl {
+    display: block;
+    font-size: 0.63rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.25rem;
+}
+
+/* Card grid */
+.sf-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 700px) {
+    .sf-row-2col { grid-template-columns: 1fr; }
+}
+
+.sf-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.sf-card h2 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 0 0 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid #f0ede8;
+}
+
+.sf-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Chart containers — must have explicit height for Chart.js */
+.sf-chart-wrap {
+    position: relative;
+    height: 280px;
+}
+
+.sf-chart-wrap--sm {
+    position: relative;
+    height: 200px;
+}
+
+.sf-chart-wrap--score {
+    position: relative;
+    height: 220px;
+    margin-top: 1rem;
+}
+
+/* Heatmap Grid */
+.hm-grid {
+    display: grid;
+    grid-template-columns: 52px 1fr 1fr 1fr 52px;
+    grid-template-rows: 42px repeat(3, 1fr) 42px;
+    gap: 4px;
+    min-height: 280px;
+}
+
+@media (max-width: 400px) {
+    .hm-grid { grid-template-columns: 38px 1fr 1fr 1fr 38px; }
+}
+
+.hm-corner { /* empty corner cell */ }
+
+.hm-miss {
+    border-radius: 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.3rem 0.25rem;
+    background: #f0f0f0;
+    gap: 0.1rem;
+}
+
+.hm-top, .hm-bottom {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0 0.6rem;
+}
+
+.hm-miss-lbl {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+    line-height: 1.2;
+}
+
+.hm-miss-val {
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.hm-miss-val em {
+    font-style: normal;
+    font-size: 0.68rem;
+    opacity: 0.8;
+}
+
+.hm-cell {
+    border-radius: 7px;
+    padding: 0.4rem 0.2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    transition: background 0.3s;
+}
+
+.hm-jack { outline: 2px solid var(--primary); outline-offset: -2px; }
+
+.hm-cn {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.8;
+    margin-bottom: 0.15rem;
+    line-height: 1.2;
+}
+
+.hm-cc { font-size: 1.35rem; font-weight: 800; line-height: 1; }
+
+.hm-cp {
+    font-size: 0.68rem;
+    font-weight: 600;
+    opacity: 0.75;
+    margin-top: 0.1rem;
+}
+
+.hm-legend {
+    margin-top: 0.75rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.hm-leg-hit  { color: #2d5016; }
+.hm-leg-miss { color: #e53935; }
+
+/* Delivery section */
+.sf-del-row {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+}
+
+.sf-del-donut { flex: 0 0 140px; }
+
+/* Tables */
+.sf-table {
+    flex: 1;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.sf-table th, .sf-table td {
+    padding: 0.45rem 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid #f0ede8;
+}
+
+.sf-table th {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sf-table td:first-child {
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Score Analysis */
+.sf-score-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 0;
+}
+
+.sf-ss-item {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 0.85rem 0.75rem;
+    text-align: center;
+}
+
+.sf-ss-item.sf-hl { background: var(--primary); }
+.sf-ss-item.sf-hl .sf-ss-val,
+.sf-ss-item.sf-hl .sf-ss-lbl { color: #fff; }
+
+.sf-ss-val {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+.sf-ss-lbl {
+    font-size: 0.63rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+}
+
+/* Actions */
+.sf-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+}

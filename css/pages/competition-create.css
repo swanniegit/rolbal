@@ -1,0 +1,156 @@
+/**
+ * Competition Create Page
+ */
+
+.form-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.form-section h3 {
+    margin: 0 0 1rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fff;
+    color: var(--text);
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.help-text {
+    display: block;
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 0.35rem;
+}
+
+/* Toggle button groups */
+.toggle-group {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.toggle-group.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.toggle-group.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.toggle-group.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+.toggle-btn {
+    padding: 0.75rem 0.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.toggle-btn:hover {
+    border-color: #81c784;
+    background: #f5fff5;
+}
+
+.toggle-btn.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+}
+
+.toggle-btn.active .toggle-desc {
+    color: rgba(255,255,255,0.75);
+}
+
+.toggle-title {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.toggle-desc {
+    display: block;
+    font-size: 0.7rem;
+    color: #888;
+    margin-top: 0.2rem;
+}
+
+/* Round robin section options */
+.options-section {
+    background: #f8faf5;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #d8e8cb;
+}
+
+.options-section .form-group {
+    margin-bottom: 0.75rem;
+}
+
+/* Submit button */
+.btn-submit {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 10px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+}
+
+.btn-submit:hover {
+    background: var(--primary-dark);
+}
+
+.btn-submit:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}

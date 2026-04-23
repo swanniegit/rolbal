@@ -175,15 +175,24 @@ if ($sessionId) {
             <div class="roll-step <?= !$needEndLength ? 'hidden' : '' ?>" id="stepEndLength">
                 <h2>End <?= $currentEnd ?> - Length</h2>
                 <div class="btn-group vertical">
-                    <button type="button" class="btn-choice" data-field="end_length" data-value="11">Short End</button>
-                    <button type="button" class="btn-choice" data-field="end_length" data-value="10">Middle End</button>
                     <button type="button" class="btn-choice" data-field="end_length" data-value="9">Long End</button>
+                    <button type="button" class="btn-choice" data-field="end_length" data-value="10">Middle End</button>
+                    <button type="button" class="btn-choice" data-field="end_length" data-value="11">Short End</button>
                 </div>
             </div>
 
-            <!-- Step 2: Result Position -->
-            <div class="roll-step <?= $needEndLength ? 'hidden' : '' ?>" id="stepResult">
-                <h2>Bowl <?= $currentBowl ?></h2>
+            <!-- Step 2: Delivery -->
+            <div class="roll-step hidden" id="stepDelivery">
+                <h2 id="deliveryHeader">Bowl <?= $currentBowl ?> - Delivery</h2>
+                <div class="btn-group vertical">
+                    <button type="button" class="btn-choice" data-value="14">Forehand</button>
+                    <button type="button" class="btn-choice" data-value="13">Backhand</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Result Position -->
+            <div class="roll-step hidden" id="stepResult">
+                <h2 id="bowlHeader">Bowl <?= $currentBowl ?></h2>
                 <div class="result-row">
                     <div class="green-container">
                         <!-- Row 1: Top miss bar -->
@@ -224,6 +233,6 @@ if ($sessionId) {
 
     <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
-    <script src="js/game.js?v=3"></script>
+    <script src="js/game.js?v=4"></script>
 </body>
 </html>

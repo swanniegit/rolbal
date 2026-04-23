@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 628px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1e3a0f;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    width: 1200px;
+    height: 628px;
+  }
+
+  .main-row {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── Left brand panel ── */
+  .brand {
+    width: 340px;
+    flex-shrink: 0;
+    background: linear-gradient(160deg, #2d5016 0%, #1a3009 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 36px 36px 20px;
+    position: relative;
+  }
+
+  .brand::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: 0;
+    bottom: 0;
+    width: 48px;
+    background: linear-gradient(160deg, #2d5016 0%, #1a3009 100%);
+    clip-path: polygon(0 0, 0% 100%, 100% 100%);
+  }
+
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .logo-wrap img {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+  }
+
+  .brand-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.3px;
+  }
+
+  .brand-name span {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .headline {
+    font-size: 30px;
+    font-weight: 900;
+    color: white;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+
+  .headline em {
+    font-style: normal;
+    color: #f5b800;
+  }
+
+  .tagline {
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  .cta {
+    display: inline-block;
+    background: #f5b800;
+    color: #1e3a0f;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 24px;
+    letter-spacing: 0.02em;
+    width: fit-content;
+  }
+
+  .url {
+    margin-top: 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Right screenshots panel ── */
+  .screens {
+    flex: 1;
+    background: #eef6e4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 22px 32px 22px 50px;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .phone-frame {
+    position: relative;
+    width: 100%;
+    max-width: 168px;
+  }
+
+  .phone-frame img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12);
+    border: 3px solid white;
+    display: block;
+  }
+
+  .step-badge {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 30px;
+    height: 30px;
+    background: #f5b800;
+    color: #1e3a0f;
+    border-radius: 50%;
+    font-weight: 900;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  .step-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2d5016;
+    text-align: center;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Awards footer strip ── */
+  .award-footer {
+    height: 62px;
+    background: #1e3a0f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 0 40px;
+    flex-shrink: 0;
+  }
+
+  .af-new {
+    background: #f5b800;
+    color: #1e3a0f;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .af-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+  }
+
+  .af-title em {
+    font-style: normal;
+    color: #f5b800;
+  }
+
+  .af-divider {
+    width: 1px;
+    height: 28px;
+    background: rgba(255,255,255,0.15);
+    flex-shrink: 0;
+  }
+
+  .af-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .af-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0;
+    border: 2px solid transparent;
+  }
+
+  .af-bronze   { background: #f5e6d3; color: #a0522d; border-color: #cd7f32; }
+  .af-silver   { background: #f0f0f0; color: #616161; border-color: #9e9e9e; }
+  .af-gold     { background: #fff8e1; color: #b8860b; border-color: #f9a825; }
+  .af-platinum { background: #e0f7fa; color: #00838f; border-color: #26c6da; }
+
+  .af-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.35;
+  }
+
+  .af-desc strong {
+    color: white;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="main-row">
+
+    <div class="brand">
+      <div class="logo-wrap">
+        <img src="assets/logo-192.png" alt="BowlsTracker">
+        <div class="brand-name">BowlsTracker <span>Lawn Bowls App</span></div>
+      </div>
+      <h1 class="headline">Track Every Bowl.<br><em>See Every Stat.</em></h1>
+      <p class="tagline">The app scores every bowl for you — automatically — and keeps a full history so you can track your progress over time.</p>
+      <div class="cta">Free at bowlstracker.co.za</div>
+      <div class="url">bowlstracker.co.za</div>
+    </div>
+
+    <div class="screens">
+
+      <div class="step">
+        <div class="phone-frame">
+          <img src="assets/fb-step1.png" alt="Pick your game">
+          <div class="step-badge">1</div>
+        </div>
+        <div class="step-label">Pick Your<br>Game</div>
+      </div>
+
+      <div class="step">
+        <div class="phone-frame">
+          <img src="assets/fb-step2.png" alt="Pick your length">
+          <div class="step-badge">2</div>
+        </div>
+        <div class="step-label">Pick Your<br>Length</div>
+      </div>
+
+      <div class="step">
+        <div class="phone-frame">
+          <img src="assets/fb-step3.png" alt="Pick your position">
+          <div class="step-badge">3</div>
+        </div>
+        <div class="step-label">Pick Your<br>Position</div>
+      </div>
+
+      <div class="step">
+        <div class="phone-frame">
+          <img src="assets/fb-step4.png" alt="See your stats">
+          <div class="step-badge">4</div>
+        </div>
+        <div class="step-label">See Your<br>Stats</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Awards footer bar -->
+  <div class="award-footer">
+    <span class="af-new">NEW</span>
+    <span class="af-title">Earn <em>Awards!</em></span>
+    <div class="af-divider"></div>
+    <div class="af-badges">
+      <div class="af-badge af-bronze">BRZ</div>
+      <div class="af-badge af-silver">SLV</div>
+      <div class="af-badge af-gold">GLD</div>
+      <div class="af-badge af-platinum">PLT</div>
+    </div>
+    <span class="af-desc">Unlock <strong>22 badges</strong> — Bronze, Silver, Gold &amp; Platinum — as your accuracy improves</span>
+  </div>
+
+</div>
+</body>
+</html>

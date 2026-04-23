@@ -1,6 +1,6 @@
 // BowlsTracker Service Worker
 
-const CACHE_NAME = 'bowlstracker-v2';
+const CACHE_NAME = 'bowlstracker-v6';
 
 // Only static assets — never PHP pages (they contain session-sensitive content)
 const STATIC_ASSETS = [

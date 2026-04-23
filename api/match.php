@@ -26,7 +26,33 @@ function parseBody(): array {
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        $action   = $_GET['action'] ?? 'list';
+        $action = $_GET['action'] ?? 'list';
+
+        // Public bounce actions — no auth required
+        if ($action === 'bounce_get') {
+            $token = $_GET['token'] ?? '';
+            if (!$token) ApiResponse::error('Token required', 400);
+            $match = GameMatch::findBounceWithDetails($token);
+            if (!$match) ApiResponse::notFound('Match not found');
+            ApiResponse::success(['match' => $match]);
+        }
+
+        if ($action === 'bounce_scores') {
+            $token = $_GET['token'] ?? '';
+            if (!$token) ApiResponse::error('Token required', 400);
+            $base = GameMatch::findByToken($token);
+            if (!$base) ApiResponse::notFound('Match not found');
+            $scores = GameMatch::getScores($base['id']);
+            if (!$scores) ApiResponse::notFound('Match not found');
+            ApiResponse::success($scores);
+        }
+
+        if ($action === 'bounce_list') {
+            $matches = GameMatch::getLiveBounceGames();
+            ApiResponse::success(['matches' => $matches]);
+        }
+
+        // All remaining actions require authentication
         $playerId = Auth::idFromRequest();
         if (!$playerId) ApiResponse::unauthorized();
 
@@ -109,7 +135,52 @@ try {
 
         $action = $input['action'] ?? '';
 
-        if ($action === 'create') {
+        if ($action === 'bounce_create') {
+            $matchName      = trim($input['match_name'] ?? '');
+            $playersPerTeam = isset($input['players_per_team']) ? (int)$input['players_per_team'] : 1;
+            $bowlsPerPlayer = isset($input['bowls_per_player']) ? (int)$input['bowls_per_player'] : 4;
+            $scoringMode    = $input['scoring_mode'] ?? 'ends';
+            $targetScore    = isset($input['target_score']) ? (int)$input['target_score'] : 21;
+
+            if ($playersPerTeam < 1 || $playersPerTeam > 6) throw new Exception('Players per team must be 1–6');
+            if ($bowlsPerPlayer < 1 || $bowlsPerPlayer > 6) throw new Exception('Bowls per player must be 1–6');
+            if (!in_array($scoringMode, ['ends', 'first_to'])) $scoringMode = 'ends';
+            if ($targetScore < 1 || $targetScore > 50) $targetScore = 21;
+
+            $team1Name = trim($input['team1_name'] ?? '') ?: 'Team 1';
+            $team2Name = trim($input['team2_name'] ?? '') ?: 'Team 2';
+
+            $clubId = isset($input['club_id']) && $input['club_id'] ? (int)$input['club_id'] : null;
+            if ($clubId && !ClubMember::isMember($clubId, $playerId)) {
+                throw new Exception('You are not a member of that club');
+            }
+
+            $db = Database::getInstance();
+            $db->beginTransaction();
+            try {
+                $result     = GameMatch::createBounce($playerId, $matchName ?: null, $playersPerTeam, $bowlsPerPlayer, $scoringMode, $targetScore, $clubId);
+                $matchId    = $result['match_id'];
+                $shareToken = $result['share_token'];
+
+                $team1Id = GameMatch::createTeam($matchId, 1, $team1Name);
+                $team2Id = GameMatch::createTeam($matchId, 2, $team2Name);
+
+                for ($i = 1; $i <= $playersPerTeam; $i++) {
+                    $p1 = trim($input["team1_player_{$i}"] ?? '') ?: "Player {$i}";
+                    $p2 = trim($input["team2_player_{$i}"] ?? '') ?: "Player {$i}";
+                    GameMatch::addBouncePlayer($team1Id, $i, $p1);
+                    GameMatch::addBouncePlayer($team2Id, $i, $p2);
+                }
+
+                $db->commit();
+            } catch (Exception $e) {
+                $db->rollBack();
+                throw $e;
+            }
+
+            ApiResponse::success(['match_id' => $matchId, 'share_token' => $shareToken]);
+
+        } elseif ($action === 'create') {
             $clubId         = isset($input['club_id'])         ? (int)$input['club_id']         : 0;
             $gameType       = $input['game_type']              ?? '';
             $bowlsPerPlayer = isset($input['bowls_per_player']) ? (int)$input['bowls_per_player'] : 0;
@@ -187,8 +258,19 @@ try {
             GameMatch::recordEnd($matchId, $endNumber, $scoringTeam, $shots);
             $scores = GameMatch::getScores($matchId);
 
+            $endsPlayed = count($scores['ends']);
+            $autoComplete = false;
+
             if ($match['scoring_mode'] === 'first_to' &&
                 ($scores['team1_score'] >= $match['target_score'] || $scores['team2_score'] >= $match['target_score'])) {
+                $autoComplete = true;
+            }
+
+            if ($match['scoring_mode'] === 'ends' && $endsPlayed >= $match['target_score']) {
+                $autoComplete = true;
+            }
+
+            if ($autoComplete) {
                 GameMatch::complete($matchId);
                 $scores['status'] = 'completed';
             }
